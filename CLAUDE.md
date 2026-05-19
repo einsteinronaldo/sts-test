@@ -3,6 +3,14 @@
 ## Always Do First
 - **Invoke the `frontend-design` skill** before writing any frontend code, every session, no exceptions.
 
+## Task Management & TODOs
+- **Create a TODO list:** Before starting any complex task or multi-step implementation, create or update a list of "Todos" in the chat or in a temporary file. Check them off as you progress so I can track exactly what is being done.
+
+## Git & Deployment Restrictions
+- **STRICT PROHIBITION on Git Push:** You are never allowed to run `git push`. This is a hard restriction.
+- **Git Commits:** You may prepare commits (using `git add` and `git commit`) only if I explicitly ask you to "prepare a commit".
+- **Final Deployment:** Only I (the user) will perform the final push to the remote repository. Do not suggest running push commands.
+
 ## Reference Images
 - If a reference image is provided: match layout, spacing, typography, and color exactly. Swap in placeholder content (images via `https://placehold.co/`, generic copy). Do not improve or add to the design.
 - If no reference image: design from scratch with high craft (see guardrails below).
