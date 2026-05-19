@@ -1153,6 +1153,29 @@
     .rc-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); border: none; cursor: pointer; padding: 0; transition: background 0.2s ease, transform 0.2s ease; }
     .rc-dot.active { background: var(--accent); transform: scale(1.4); }
 
+    @media (max-width: 640px) {
+      .rc-outer { padding: 0; }
+      .rc-arrow { display: none; }
+      .rc-track {
+        padding: 8px 16px 28px;
+        gap: 12px;
+        scroll-padding-left: 16px;
+      }
+      .rc-card {
+        min-width: calc(100vw - 56px);
+        max-width: calc(100vw - 56px);
+      }
+      .rc-img { height: 175px; }
+      .rc-body { padding: 16px 16px 14px; }
+      .rc-title { font-size: 13px; margin-bottom: 10px; }
+      .rc-bills-row { padding: 10px 12px; margin-bottom: 10px; }
+      .rc-bill-before .rbv { font-size: 22px; }
+      .rc-bill-after .rbv { font-size: 26px; }
+      .rc-save-cell .scv { font-size: 17px; }
+      .rc-10yr .t10v { font-size: 18px; }
+      .rc-section .container { padding: 0 20px; }
+    }
+
     /* ── CRO STRIPS ── */
     .cro-strip {
       padding: 48px 0; position: relative; overflow: hidden;
