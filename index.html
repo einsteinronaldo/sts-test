@@ -848,6 +848,371 @@
       .hero-split-right { flex: none; width: 100%; padding: 0 24px 48px; justify-content: center; }
       .hsplit-form { max-width: 100%; border-radius: 12px; }
     }
+
+    /* ── SAVINGS SIMULATION ── */
+    .savings-section {
+      background: linear-gradient(180deg, #091505 0%, #0d2209 55%, #091505 100%);
+      padding: 96px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .savings-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 70% at 10% 90%, rgba(74,138,20,0.09) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 88% 15%, rgba(232,56,10,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 50% at 50% 50%, rgba(255,168,0,0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .savings-header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+    .savings-comparison {
+      display: grid;
+      grid-template-columns: 1fr 52px 1fr;
+      align-items: stretch;
+      margin-bottom: 36px;
+    }
+    .savings-col {
+      border-radius: 20px;
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+    }
+    .savings-col-before {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .savings-col-after {
+      background: linear-gradient(150deg, rgba(74,138,20,0.16) 0%, rgba(50,100,12,0.10) 100%);
+      border: 1px solid rgba(106,185,38,0.3);
+      box-shadow: 0 0 48px rgba(74,138,20,0.10), inset 0 1px 0 rgba(106,185,38,0.18);
+    }
+    .savings-vs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .savings-vs-inner {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4);
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+    .savings-col-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+      padding: 4px 12px; border-radius: 100px; width: fit-content;
+      margin-bottom: 24px;
+    }
+    .savings-col-before .savings-col-badge {
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.38);
+    }
+    .savings-col-after .savings-col-badge {
+      background: rgba(106,185,38,0.18);
+      color: #82cc3a;
+    }
+    .savings-col-title {
+      font-family: var(--font-display);
+      font-size: 14px; font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+    .savings-col-before .savings-col-title { color: rgba(255,255,255,0.35); }
+    .savings-col-after .savings-col-title { color: rgba(255,255,255,0.88); }
+    .savings-row {
+      display: flex; flex-direction: column;
+      padding: 18px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      gap: 3px;
+    }
+    .savings-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .savings-row-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em;
+    }
+    .savings-col-before .savings-row-label { color: rgba(255,255,255,0.28); }
+    .savings-col-after .savings-row-label { color: rgba(106,185,38,0.65); }
+    .savings-row-value {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 3vw, 36px); font-weight: 900; line-height: 1; letter-spacing: -0.03em;
+    }
+    .savings-col-before .savings-row-value {
+      color: rgba(255,255,255,0.25);
+      text-decoration: line-through;
+      text-decoration-color: rgba(232,56,10,0.45);
+      text-decoration-thickness: 2px;
+    }
+    .savings-col-after .savings-row-value { color: #82cc3a; }
+    .savings-row-period {
+      font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .savings-col-before .savings-row-period { color: rgba(255,255,255,0.2); }
+    .savings-col-after .savings-row-period { color: rgba(106,185,38,0.4); }
+
+    /* reduction bar */
+    .savings-bar-wrap {
+      margin-bottom: 36px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 20px 28px;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .savings-bar-label {
+      font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.45);
+      text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0;
+      min-width: 120px;
+    }
+    .savings-bar-track {
+      flex: 1; height: 10px; background: rgba(255,255,255,0.07); border-radius: 100px;
+      overflow: hidden;
+      position: relative;
+    }
+    .savings-bar-fill {
+      height: 100%; border-radius: 100px;
+      background: linear-gradient(to right, #4a8a14, #82cc3a);
+      transform-origin: left;
+      animation: barFill 1.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+      animation-play-state: paused;
+    }
+    .savings-bar-fill.animate { animation-play-state: running; }
+    @keyframes barFill { from { width: 0 } to { width: 78% } }
+    .savings-bar-pct {
+      font-family: var(--font-display);
+      font-size: 22px; font-weight: 900; color: #82cc3a; letter-spacing: -0.03em;
+      flex-shrink: 0;
+    }
+
+    /* gold highlight box */
+    .savings-highlight {
+      background: linear-gradient(130deg, #FFD600 0%, #FFA200 100%);
+      border-radius: 20px;
+      padding: 36px 40px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 56px rgba(255,168,0,0.28), 0 2px 12px rgba(0,0,0,0.5);
+    }
+    .savings-highlight::before {
+      content: '';
+      position: absolute; top: -40px; right: -40px;
+      width: 200px; height: 200px; border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+    }
+    .savings-highlight::after {
+      content: '';
+      position: absolute; bottom: -60px; left: -20px;
+      width: 160px; height: 160px; border-radius: 50%;
+      background: rgba(0,0,0,0.06);
+    }
+    .savings-hl-icon {
+      font-size: 56px; flex-shrink: 0; position: relative; z-index: 1;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+    }
+    .savings-hl-body { flex: 1; position: relative; z-index: 1; }
+    .savings-hl-eyebrow {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+      color: rgba(0,0,0,0.5); margin-bottom: 4px;
+    }
+    .savings-hl-amount {
+      font-family: var(--font-display);
+      font-size: clamp(44px, 5.5vw, 62px); font-weight: 900;
+      letter-spacing: -0.05em; color: #1A1C1E; line-height: 1;
+    }
+    .savings-hl-sub { font-size: 14px; font-weight: 600; color: rgba(0,0,0,0.55); margin-top: 6px; }
+    .savings-hl-stat {
+      flex-shrink: 0; position: relative; z-index: 1;
+      background: rgba(0,0,0,0.1); border-radius: 14px;
+      padding: 18px 26px; text-align: center;
+    }
+    .savings-hl-stat .sv { font-family: var(--font-display); font-size: 30px; font-weight: 900; letter-spacing: -0.04em; color: #1A1C1E; line-height: 1; }
+    .savings-hl-stat .sl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: rgba(0,0,0,0.5); margin-top: 5px; line-height: 1.4; }
+
+    .savings-microcopy {
+      text-align: center;
+      font-size: 12px; color: rgba(255,255,255,0.3); line-height: 1.72;
+      margin-bottom: 28px; max-width: 640px; margin-left: auto; margin-right: auto;
+    }
+    .savings-cta-link {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      color: #82cc3a; font-size: 15px; font-weight: 700; text-decoration: none;
+      letter-spacing: -0.01em;
+      transition: gap 0.22s ease, opacity 0.22s ease;
+    }
+    .savings-cta-link:hover { gap: 14px; opacity: 0.8; }
+    .savings-cta-link:focus-visible { outline: 2px solid #82cc3a; outline-offset: 4px; border-radius: 4px; }
+
+    @media (max-width: 960px) {
+      .savings-comparison { grid-template-columns: 1fr; gap: 0; }
+      .savings-vs { height: 44px; }
+      .savings-col-before { border-radius: 20px 20px 0 0; }
+      .savings-col-after { border-radius: 0 0 20px 20px; }
+      .savings-highlight { flex-wrap: wrap; gap: 20px; }
+      .savings-hl-stat { width: 100%; text-align: left; display: flex; align-items: center; gap: 16px; padding: 14px 20px; }
+      .savings-hl-stat .sv { font-size: 26px; }
+      .savings-bar-wrap { flex-wrap: wrap; gap: 12px; }
+      .savings-bar-label { min-width: auto; }
+      .savings-bar-track { width: 100%; order: 3; flex: none; }
+    }
+
+    /* ── RESULTS CAROUSEL ── */
+    .rc-section { background: #f2f5f2; padding: 84px 0; }
+    .rc-outer {
+      position: relative;
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 0 64px;
+    }
+    .rc-arrow {
+      position: absolute;
+      top: calc(50% - 32px);
+      transform: translateY(-50%);
+      z-index: 2;
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 2px solid var(--border);
+      background: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+    }
+    .rc-arrow:hover { border-color: var(--accent); background: var(--accent); color: #fff; }
+    #rcPrev { left: 8px; }
+    #rcNext { right: 8px; }
+    .rc-track {
+      display: flex; gap: 20px;
+      overflow-x: scroll; scroll-snap-type: x mandatory; scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      padding: 8px 0 32px;
+      scrollbar-width: none; cursor: grab;
+    }
+    .rc-track::-webkit-scrollbar { display: none; }
+    .rc-track.is-dragging { cursor: grabbing; scroll-behavior: auto; }
+    .rc-card {
+      min-width: 400px; max-width: 400px;
+      scroll-snap-align: start;
+      background: #fff; border-radius: 20px;
+      overflow: hidden; border: 1px solid var(--border);
+      box-shadow: 0 2px 18px rgba(0,0,0,0.07);
+      display: flex; flex-direction: column;
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+    }
+    .rc-card:hover { transform: translateY(-6px); box-shadow: 0 14px 48px rgba(0,0,0,0.13); }
+    .rc-img { height: 210px; position: relative; overflow: hidden; flex-shrink: 0; }
+    .rc-img svg { width: 100%; height: 100%; display: block; }
+    .rc-type-badge {
+      position: absolute; top: 14px; left: 14px;
+      background: rgba(0,0,0,0.52); backdrop-filter: blur(8px);
+      color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; border-radius: 100px; padding: 5px 13px;
+    }
+    .rc-family-badge {
+      position: absolute; top: 14px; right: 14px;
+      background: rgba(255,255,255,0.88); backdrop-filter: blur(6px);
+      color: var(--dark); font-size: 12px; font-weight: 700;
+      border-radius: 100px; padding: 5px 12px;
+    }
+    .rc-body { padding: 22px 22px 20px; display: flex; flex-direction: column; }
+    .rc-title { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--dark); letter-spacing: -0.01em; margin-bottom: 14px; text-transform: uppercase; }
+    .rc-bills-row {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--gray-bg); border-radius: 10px; padding: 13px 16px;
+      margin-bottom: 13px;
+    }
+    .rc-bill-before { display: flex; flex-direction: column; flex: 1; }
+    .rc-bill-before .rbv { font-family: var(--font-display); font-size: 26px; font-weight: 900; color: var(--muted); text-decoration: line-through; text-decoration-color: rgba(232,56,10,0.5); text-decoration-thickness: 2px; letter-spacing: -0.03em; line-height: 1; }
+    .rc-bill-before .rbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-top: 3px; }
+    .rc-bill-arrow { font-size: 16px; color: var(--accent); flex-shrink: 0; }
+    .rc-bill-after { display: flex; flex-direction: column; align-items: flex-end; flex: 1; }
+    .rc-bill-after .rbv { font-family: var(--font-display); font-size: 32px; font-weight: 900; color: var(--green); letter-spacing: -0.03em; line-height: 1; }
+    .rc-bill-after .rbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-top: 3px; text-align: right; }
+    .rc-specs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .rc-spec-chip { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--text); background: var(--gray-bg); border: 1px solid var(--border); border-radius: 100px; padding: 4px 11px; }
+    .rc-spec-chip.has-battery { background: rgba(74,138,20,0.08); border-color: rgba(74,138,20,0.25); color: var(--brand-green); }
+    .rc-savings-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+    .rc-save-cell { background: #fff; padding: 11px 14px; }
+    .rc-save-cell .scl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); margin-bottom: 2px; }
+    .rc-save-cell .scv { font-family: var(--font-display); font-size: 20px; font-weight: 900; color: var(--dark); letter-spacing: -0.03em; }
+    .rc-10yr { background: var(--accent-light); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
+    .rc-10yr .t10l { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.07em; }
+    .rc-10yr .t10v { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--accent); letter-spacing: -0.03em; }
+    .rc-pct-row { display: flex; align-items: center; gap: 10px; }
+    .rc-pct-track { flex: 1; height: 7px; background: var(--border); border-radius: 100px; overflow: hidden; }
+    .rc-pct-fill { height: 100%; border-radius: 100px; background: linear-gradient(to right, var(--brand-green), var(--green)); }
+    .rc-pct-label { font-size: 12px; font-weight: 800; color: var(--brand-green); min-width: 46px; text-align: right; }
+    .rc-cta { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--accent); text-decoration: none; transition: gap 0.2s ease, opacity 0.18s ease; }
+    .rc-cta:hover { gap: 11px; opacity: 0.78; }
+    .rc-dots { display: flex; justify-content: center; gap: 8px; margin-top: 4px; }
+    .rc-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); border: none; cursor: pointer; padding: 0; transition: background 0.2s ease, transform 0.2s ease; }
+    .rc-dot.active { background: var(--accent); transform: scale(1.4); }
+
+    /* ── SAVINGS TABLE SECTION ── */
+    .stab-section { background: #fff; padding: 88px 0; }
+    .stab-intro { max-width: 640px; margin-bottom: 48px; }
+    .stab-table-wrap {
+      overflow-x: auto;
+      border-radius: 16px;
+      border: 1.5px solid var(--border);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    }
+    .stab-table {
+      width: 100%; border-collapse: collapse; min-width: 700px;
+    }
+    .stab-table thead tr {
+      background: var(--dark);
+    }
+    .stab-table thead th {
+      padding: 16px 22px;
+      font-family: var(--font-display); font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.65);
+      text-align: left; white-space: nowrap; border: none;
+    }
+    .stab-table thead th:last-child { text-align: right; }
+    .stab-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s ease;
+    }
+    .stab-table tbody tr:last-child { border-bottom: none; }
+    .stab-table tbody tr:hover { background: #f8faf7; }
+    .stab-table td {
+      padding: 18px 22px; font-size: 14px; color: var(--text);
+      vertical-align: middle;
+    }
+    .stab-house-cell { display: flex; align-items: center; gap: 12px; }
+    .stab-house-icon {
+      width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .stab-house-name { font-weight: 700; color: var(--dark); font-size: 14px; }
+    .stab-house-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .stab-panels { font-weight: 700; color: var(--dark); }
+    .stab-kwh { color: var(--muted); }
+    .stab-bat { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; border-radius: 100px; padding: 3px 10px; }
+    .stab-bat.yes { background: rgba(74,138,20,0.1); color: var(--brand-green); }
+    .stab-bat.no { background: var(--gray-bg); color: var(--muted); }
+    .stab-savings-cell { text-align: right; }
+    .stab-savings-main {
+      font-family: var(--font-display); font-size: 22px; font-weight: 900;
+      color: var(--accent); letter-spacing: -0.03em; line-height: 1;
+    }
+    .stab-savings-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .stab-savings-10yr {
+      font-size: 12px; font-weight: 700; color: var(--brand-green); margin-top: 4px;
+    }
+    .stab-bar-cell { min-width: 120px; }
+    .stab-bar-outer { display: flex; align-items: center; gap: 8px; }
+    .stab-bar-bg { flex: 1; height: 6px; background: var(--border); border-radius: 100px; overflow: hidden; min-width: 60px; }
+    .stab-bar-in { height: 100%; background: linear-gradient(to right, var(--brand-green), var(--green)); border-radius: 100px; }
+    .stab-pct { font-size: 11px; font-weight: 800; color: var(--brand-green); white-space: nowrap; }
+    .stab-cta-row { margin-top: 36px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .stab-note { font-size: 13px; color: var(--muted); line-height: 1.6; flex: 1; }
   </style>
 </head>
 <body>
@@ -1427,6 +1792,1085 @@
   </div>
 </section>
 
+<!-- ═══ SAVINGS SIMULATION ═══ -->
+<section class="savings-section">
+  <div class="container">
+
+    <div class="savings-header">
+      <div class="section-eyebrow">Simulação de poupança</div>
+      <div class="section-title" style="color:#fff;">Quanto pode poupar?<br>Veja um exemplo real.</div>
+      <div class="section-sub" style="color:rgba(255,255,255,0.45); margin-top:12px;">Habitação T3 · Consumo médio de 350 kWh/mês · Sul de Portugal</div>
+    </div>
+
+    <!-- BEFORE / AFTER -->
+    <div class="savings-comparison">
+
+      <div class="savings-col savings-col-before">
+        <div class="savings-col-badge">Antes da Sun to Sun</div>
+        <div class="savings-col-title">Sem painéis solares</div>
+        <div class="savings-row">
+          <div class="savings-row-label">Fatura mensal</div>
+          <div class="savings-row-value">125€</div>
+          <div class="savings-row-period">por mês</div>
+        </div>
+        <div class="savings-row">
+          <div class="savings-row-label">Fatura anual</div>
+          <div class="savings-row-value">1.500€</div>
+          <div class="savings-row-period">por ano</div>
+        </div>
+        <div class="savings-row">
+          <div class="savings-row-label">Em 25 anos</div>
+          <div class="savings-row-value">37.500€</div>
+          <div class="savings-row-period">acumulado</div>
+        </div>
+      </div>
+
+      <div class="savings-vs">
+        <div class="savings-vs-inner">VS</div>
+      </div>
+
+      <div class="savings-col savings-col-after">
+        <div class="savings-col-badge">Com Sun to Sun</div>
+        <div class="savings-col-title">Com painéis solares</div>
+        <div class="savings-row">
+          <div class="savings-row-label">Fatura mensal</div>
+          <div class="savings-row-value">28€</div>
+          <div class="savings-row-period">por mês</div>
+        </div>
+        <div class="savings-row">
+          <div class="savings-row-label">Fatura anual</div>
+          <div class="savings-row-value">336€</div>
+          <div class="savings-row-period">por ano</div>
+        </div>
+        <div class="savings-row">
+          <div class="savings-row-label">Em 25 anos</div>
+          <div class="savings-row-value">8.400€</div>
+          <div class="savings-row-period">acumulado</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- REDUCTION BAR -->
+    <div class="savings-bar-wrap">
+      <div class="savings-bar-label">Redução da fatura</div>
+      <div class="savings-bar-track">
+        <div class="savings-bar-fill" id="savingsBar"></div>
+      </div>
+      <div class="savings-bar-pct">−78%</div>
+    </div>
+
+    <!-- HIGHLIGHT BOX -->
+    <div class="savings-highlight">
+      <div class="savings-hl-icon">💰</div>
+      <div class="savings-hl-body">
+        <div class="savings-hl-eyebrow">Poupança total em 25 anos</div>
+        <div class="savings-hl-amount">29.100€</div>
+        <div class="savings-hl-sub">Apenas em eletricidade</div>
+      </div>
+      <div class="savings-hl-stat">
+        <div class="sv">5–7</div>
+        <div class="sl">anos de<br>retorno</div>
+      </div>
+    </div>
+
+    <!-- MICROCOPY + CTA -->
+    <p class="savings-microcopy">Exemplo baseado em habitação T3 com consumo médio de 350 kWh/mês. A sua poupança real depende da sua casa, localização e consumo.</p>
+    <a href="#heroForm" class="savings-cta-link">
+      Simular a minha poupança real
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.75 9h10.5M9.75 4.5L14.25 9l-4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+
+  </div>
+</section>
+
+<script>
+(function(){
+  var bar = document.getElementById('savingsBar');
+  if (!bar) return;
+  var triggered = false;
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting && !triggered) {
+        triggered = true;
+        bar.classList.add('animate');
+        io.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+  io.observe(bar.closest('.savings-section'));
+})();
+</script>
+
+<!-- ═══ RESULTS CAROUSEL ═══ -->
+<section class="rc-section">
+  <div class="container">
+    <div class="section-eyebrow">Casos reais</div>
+    <div class="section-title">Instalações para todos os perfis de consumo</div>
+    <div class="section-sub" style="max-width:580px;">Cada sistema é calculado ao detalhe para a sua casa. Veja quanto famílias com perfis diferentes já estão a poupar.</div>
+  </div>
+
+  <div class="rc-outer" style="margin-top:40px;">
+    <button class="rc-arrow" id="rcPrev" aria-label="Anterior">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11.25 13.5L6.75 9l4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+
+    <div class="rc-track" id="rcTrack">
+
+      <!-- ── CARD 1: T2 Apartamento ── -->
+      <div class="rc-card">
+        <div class="rc-img">
+          <svg viewBox="0 0 400 210" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="sky1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c8e8f8"/><stop offset="60%" stop-color="#e8f5fd"/><stop offset="100%" stop-color="#a8c878"/></linearGradient>
+              <linearGradient id="ground1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8ab84a"/><stop offset="100%" stop-color="#5a8a1e"/></linearGradient>
+            </defs>
+            <rect width="400" height="210" fill="url(#sky1)"/>
+            <!-- Clouds -->
+            <ellipse cx="80" cy="38" rx="36" ry="14" fill="white" fill-opacity="0.65"/>
+            <ellipse cx="105" cy="34" rx="26" ry="11" fill="white" fill-opacity="0.65"/>
+            <ellipse cx="280" cy="50" rx="28" ry="10" fill="white" fill-opacity="0.5"/>
+            <!-- Sun -->
+            <circle cx="340" cy="40" r="22" fill="#FFD600" fill-opacity="0.9"/>
+            <g stroke="#FFD600" stroke-opacity="0.4" stroke-width="2">
+              <line x1="340" y1="12" x2="340" y2="6"/><line x1="361" y1="19" x2="365" y2="15"/>
+              <line x1="368" y1="40" x2="374" y2="40"/><line x1="361" y1="61" x2="365" y2="65"/>
+              <line x1="319" y1="19" x2="315" y2="15"/><line x1="312" y1="40" x2="306" y2="40"/>
+            </g>
+            <!-- Ground -->
+            <rect x="0" y="175" width="400" height="35" fill="url(#ground1)"/>
+            <!-- Apartment building -->
+            <rect x="130" y="75" width="140" height="100" fill="white" fill-opacity="0.94"/>
+            <!-- Flat roof parapet -->
+            <rect x="124" y="68" width="152" height="14" fill="#d4d0ca" fill-opacity="0.9"/>
+            <!-- Floors lines -->
+            <line x1="130" y1="108" x2="270" y2="108" stroke="#e8e4de" stroke-width="1.5"/>
+            <line x1="130" y1="141" x2="270" y2="141" stroke="#e8e4de" stroke-width="1.5"/>
+            <!-- Windows floor 3 -->
+            <rect x="145" y="77" width="24" height="18" rx="2" fill="#a8d4f0" fill-opacity="0.75"/>
+            <rect x="188" y="77" width="24" height="18" rx="2" fill="#a8d4f0" fill-opacity="0.75"/>
+            <rect x="231" y="77" width="24" height="18" rx="2" fill="#a8d4f0" fill-opacity="0.75"/>
+            <!-- Windows floor 2 -->
+            <rect x="145" y="115" width="24" height="18" rx="2" fill="#a8d4f0" fill-opacity="0.75"/>
+            <rect x="188" y="115" width="24" height="18" rx="2" fill="#a8d4f0" fill-opacity="0.75"/>
+            <rect x="231" y="115" width="24" height="18" rx="2" fill="#a8d4f0" fill-opacity="0.75"/>
+            <!-- Doors floor 1 -->
+            <rect x="162" y="148" width="22" height="27" rx="1" fill="#b09070" fill-opacity="0.75"/>
+            <rect x="216" y="148" width="22" height="27" rx="1" fill="#b09070" fill-opacity="0.75"/>
+            <!-- Solar panels on roof (6) -->
+            <rect x="136" y="55" width="28" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="168" y="55" width="28" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="200" y="55" width="28" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="232" y="55" width="28" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <!-- Trees -->
+            <rect x="92" y="152" width="8" height="24" fill="#6a4a18" fill-opacity="0.7"/>
+            <ellipse cx="96" cy="145" rx="18" ry="20" fill="#4a8a1e" fill-opacity="0.8"/>
+            <rect x="300" y="155" width="8" height="20" fill="#6a4a18" fill-opacity="0.7"/>
+            <ellipse cx="304" cy="148" rx="15" ry="17" fill="#5a9a2e" fill-opacity="0.8"/>
+          </svg>
+          <div class="rc-type-badge">T2 Apartamento</div>
+          <div class="rc-family-badge">👥 2 pessoas</div>
+        </div>
+        <div class="rc-body">
+          <div class="rc-title">Casal sem filhos · Consumo baixo</div>
+          <div class="rc-bills-row">
+            <div class="rc-bill-before"><div class="rbv">68€</div><div class="rbl">fatura antes/mês</div></div>
+            <div class="rc-bill-arrow">→</div>
+            <div class="rc-bill-after"><div class="rbv">24€</div><div class="rbl">fatura depois/mês</div></div>
+          </div>
+          <div class="rc-specs">
+            <span class="rc-spec-chip">☀ 6 painéis</span>
+            <span class="rc-spec-chip">⚡ 3.66 kWp</span>
+            <span class="rc-spec-chip">🔋 Sem bateria</span>
+          </div>
+          <div class="rc-savings-row">
+            <div class="rc-save-cell"><div class="scl">Poupança mensal</div><div class="scv">44€</div></div>
+            <div class="rc-save-cell"><div class="scl">Poupança anual</div><div class="scv">528€</div></div>
+          </div>
+          <div class="rc-10yr">
+            <div class="t10l">Poupança em 10 anos</div>
+            <div class="t10v">5.280€</div>
+          </div>
+          <div class="rc-pct-row">
+            <div class="rc-pct-track"><div class="rc-pct-fill" style="width:65%"></div></div>
+            <div class="rc-pct-label">−65%</div>
+          </div>
+          <a href="#heroForm" class="rc-cta">Quero proposta similar <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        </div>
+      </div>
+
+      <!-- ── CARD 2: T3 Moradia Familiar ── -->
+      <div class="rc-card">
+        <div class="rc-img">
+          <svg viewBox="0 0 400 210" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#87ceeb"/><stop offset="55%" stop-color="#c4e8f8"/><stop offset="100%" stop-color="#7ab84a"/></linearGradient>
+            </defs>
+            <rect width="400" height="210" fill="url(#sky2)"/>
+            <ellipse cx="100" cy="42" rx="40" ry="15" fill="white" fill-opacity="0.6"/>
+            <ellipse cx="130" cy="37" rx="30" ry="12" fill="white" fill-opacity="0.6"/>
+            <circle cx="330" cy="36" r="24" fill="#FFD600" fill-opacity="0.92"/>
+            <g stroke="#FFD600" stroke-opacity="0.35" stroke-width="2">
+              <line x1="330" y1="6" x2="330" y2="0"/><line x1="354" y1="12" x2="358" y2="8"/>
+              <line x1="360" y1="36" x2="366" y2="36"/><line x1="354" y1="60" x2="358" y2="64"/>
+              <line x1="306" y1="12" x2="302" y2="8"/>
+            </g>
+            <!-- Ground -->
+            <rect x="0" y="174" width="400" height="36" fill="#6aaa3a"/>
+            <!-- House body -->
+            <rect x="100" y="105" width="200" height="90" fill="white" fill-opacity="0.95"/>
+            <!-- Roof -->
+            <polygon points="84,105 200,45 316,105" fill="#7a2e0a" fill-opacity="0.83"/>
+            <!-- Chimney -->
+            <rect x="240" y="57" width="16" height="30" fill="#9a4a18" fill-opacity="0.8"/>
+            <!-- Door -->
+            <rect x="178" y="148" width="44" height="47" rx="2" fill="#7a4a18" fill-opacity="0.78"/>
+            <circle cx="216" cy="175" r="3" fill="#c8a070" fill-opacity="0.9"/>
+            <!-- Windows -->
+            <rect x="112" y="118" width="38" height="30" rx="3" fill="#a8d8f0" fill-opacity="0.72"/>
+            <line x1="131" y1="118" x2="131" y2="148" stroke="white" stroke-opacity="0.5" stroke-width="1.5"/>
+            <line x1="112" y1="133" x2="150" y2="133" stroke="white" stroke-opacity="0.5" stroke-width="1.5"/>
+            <rect x="250" y="118" width="38" height="30" rx="3" fill="#a8d8f0" fill-opacity="0.72"/>
+            <line x1="269" y1="118" x2="269" y2="148" stroke="white" stroke-opacity="0.5" stroke-width="1.5"/>
+            <line x1="250" y1="133" x2="288" y2="133" stroke="white" stroke-opacity="0.5" stroke-width="1.5"/>
+            <!-- Solar panels on roof (10) - 2 rows -->
+            <rect x="116" y="64" width="28" height="17" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="148" y="57" width="28" height="17" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="180" y="51" width="28" height="17" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="212" y="51" width="28" height="17" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="244" y="57" width="28" height="17" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="128" y="83" width="28" height="17" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <rect x="160" y="76" width="28" height="17" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <rect x="192" y="70" width="28" height="17" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <rect x="224" y="76" width="28" height="17" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <rect x="256" y="83" width="28" height="17" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <!-- Trees -->
+            <rect x="60" y="155" width="10" height="20" fill="#7a5020"/>
+            <ellipse cx="65" cy="148" rx="22" ry="20" fill="#4a9018" fill-opacity="0.85"/>
+            <rect x="328" y="158" width="9" height="17" fill="#7a5020"/>
+            <ellipse cx="333" cy="152" rx="18" ry="16" fill="#5aa028" fill-opacity="0.85"/>
+          </svg>
+          <div class="rc-type-badge">T3 Moradia</div>
+          <div class="rc-family-badge">👨‍👩‍👧‍👦 4 pessoas</div>
+        </div>
+        <div class="rc-body">
+          <div class="rc-title">Família com 2 filhos · Consumo médio</div>
+          <div class="rc-bills-row">
+            <div class="rc-bill-before"><div class="rbv">115€</div><div class="rbl">fatura antes/mês</div></div>
+            <div class="rc-bill-arrow">→</div>
+            <div class="rc-bill-after"><div class="rbv">32€</div><div class="rbl">fatura depois/mês</div></div>
+          </div>
+          <div class="rc-specs">
+            <span class="rc-spec-chip">☀ 10 painéis</span>
+            <span class="rc-spec-chip">⚡ 6.10 kWp</span>
+            <span class="rc-spec-chip">🔋 Sem bateria</span>
+          </div>
+          <div class="rc-savings-row">
+            <div class="rc-save-cell"><div class="scl">Poupança mensal</div><div class="scv">83€</div></div>
+            <div class="rc-save-cell"><div class="scl">Poupança anual</div><div class="scv">996€</div></div>
+          </div>
+          <div class="rc-10yr">
+            <div class="t10l">Poupança em 10 anos</div>
+            <div class="t10v">9.960€</div>
+          </div>
+          <div class="rc-pct-row">
+            <div class="rc-pct-track"><div class="rc-pct-fill" style="width:72%"></div></div>
+            <div class="rc-pct-label">−72%</div>
+          </div>
+          <a href="#heroForm" class="rc-cta">Quero proposta similar <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        </div>
+      </div>
+
+      <!-- ── CARD 3: T3 com Piscina ── -->
+      <div class="rc-card">
+        <div class="rc-img">
+          <svg viewBox="0 0 400 210" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="sky3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#87ceeb"/><stop offset="50%" stop-color="#fde8b0"/><stop offset="100%" stop-color="#7ab040"/></linearGradient>
+              <linearGradient id="pool3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4ab8e8"/><stop offset="100%" stop-color="#1a78b8"/></linearGradient>
+            </defs>
+            <rect width="400" height="210" fill="url(#sky3)"/>
+            <circle cx="320" cy="38" r="26" fill="#FFD600" fill-opacity="0.92"/>
+            <g stroke="#FFD600" stroke-opacity="0.35" stroke-width="2">
+              <line x1="320" y1="6" x2="320" y2="0"/><line x1="346" y1="18" x2="350" y2="14"/>
+              <line x1="352" y1="38" x2="358" y2="38"/><line x1="294" y1="18" x2="290" y2="14"/>
+            </g>
+            <rect x="0" y="173" width="400" height="37" fill="#6ab030"/>
+            <!-- House -->
+            <rect x="85" y="100" width="190" height="90" fill="white" fill-opacity="0.95"/>
+            <polygon points="68,100 180,42 292,100" fill="#8a3810" fill-opacity="0.82"/>
+            <rect x="222" y="52" width="15" height="28" fill="#9a4a1a" fill-opacity="0.8"/>
+            <!-- Door -->
+            <rect x="160" y="148" width="40" height="42" rx="2" fill="#7a4a1a" fill-opacity="0.76"/>
+            <circle cx="194" cy="172" r="3" fill="#c8a070"/>
+            <!-- Windows -->
+            <rect x="96" y="113" width="38" height="28" rx="3" fill="#a8d8f0" fill-opacity="0.72"/>
+            <line x1="115" y1="113" x2="115" y2="141" stroke="white" stroke-opacity="0.5" stroke-width="1.5"/>
+            <rect x="226" y="113" width="38" height="28" rx="3" fill="#a8d8f0" fill-opacity="0.72"/>
+            <line x1="245" y1="113" x2="245" y2="141" stroke="white" stroke-opacity="0.5" stroke-width="1.5"/>
+            <!-- Solar panels (14) - 2 rows of 5+4 -->
+            <rect x="100" y="58" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="130" y="51" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="160" y="46" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="190" y="46" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="220" y="51" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="250" y="58" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="112" y="76" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.7"/>
+            <rect x="142" y="69" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.7"/>
+            <rect x="172" y="64" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.7"/>
+            <rect x="202" y="64" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.7"/>
+            <rect x="232" y="69" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.7"/>
+            <!-- Pool -->
+            <rect x="300" y="145" width="72" height="42" rx="6" fill="url(#pool3)" fill-opacity="0.88"/>
+            <ellipse cx="336" cy="155" rx="20" ry="6" fill="white" fill-opacity="0.2"/>
+            <!-- Pool ladder lines -->
+            <line x1="304" y1="154" x2="304" y2="184" stroke="white" stroke-opacity="0.4" stroke-width="2"/>
+            <line x1="308" y1="158" x2="300" y2="158" stroke="white" stroke-opacity="0.4" stroke-width="1.5"/>
+            <line x1="308" y1="165" x2="300" y2="165" stroke="white" stroke-opacity="0.4" stroke-width="1.5"/>
+            <!-- Trees -->
+            <rect x="48" y="155" width="10" height="19" fill="#7a5020"/>
+            <ellipse cx="53" cy="147" rx="20" ry="18" fill="#4a9018" fill-opacity="0.85"/>
+          </svg>
+          <div class="rc-type-badge">T3 com Piscina</div>
+          <div class="rc-family-badge">👨‍👩‍👧‍👦 4 pessoas</div>
+        </div>
+        <div class="rc-body">
+          <div class="rc-title">Família com piscina · Consumo elevado</div>
+          <div class="rc-bills-row">
+            <div class="rc-bill-before"><div class="rbv">178€</div><div class="rbl">fatura antes/mês</div></div>
+            <div class="rc-bill-arrow">→</div>
+            <div class="rc-bill-after"><div class="rbv">47€</div><div class="rbl">fatura depois/mês</div></div>
+          </div>
+          <div class="rc-specs">
+            <span class="rc-spec-chip">☀ 14 painéis</span>
+            <span class="rc-spec-chip">⚡ 8.54 kWp</span>
+            <span class="rc-spec-chip has-battery">🔋 Bateria 10 kWh</span>
+          </div>
+          <div class="rc-savings-row">
+            <div class="rc-save-cell"><div class="scl">Poupança mensal</div><div class="scv">131€</div></div>
+            <div class="rc-save-cell"><div class="scl">Poupança anual</div><div class="scv">1.572€</div></div>
+          </div>
+          <div class="rc-10yr">
+            <div class="t10l">Poupança em 10 anos</div>
+            <div class="t10v">15.720€</div>
+          </div>
+          <div class="rc-pct-row">
+            <div class="rc-pct-track"><div class="rc-pct-fill" style="width:74%"></div></div>
+            <div class="rc-pct-label">−74%</div>
+          </div>
+          <a href="#heroForm" class="rc-cta">Quero proposta similar <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        </div>
+      </div>
+
+      <!-- ── CARD 4: T4 Grande Moradia ── -->
+      <div class="rc-card">
+        <div class="rc-img">
+          <svg viewBox="0 0 400 210" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="sky4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f5c060"/><stop offset="45%" stop-color="#fde090"/><stop offset="100%" stop-color="#8ab840"/></linearGradient>
+            </defs>
+            <rect width="400" height="210" fill="url(#sky4)"/>
+            <!-- Sun glow -->
+            <circle cx="50" cy="55" r="30" fill="#FF8800" fill-opacity="0.6"/>
+            <circle cx="50" cy="55" r="22" fill="#FFD600" fill-opacity="0.9"/>
+            <!-- Ground -->
+            <rect x="0" y="172" width="400" height="38" fill="#5a9828"/>
+            <!-- Large house - two wings -->
+            <!-- Main body -->
+            <rect x="70" y="98" width="260" height="90" fill="white" fill-opacity="0.95"/>
+            <!-- Left wing lower -->
+            <rect x="40" y="118" width="50" height="70" fill="#f5f0e8" fill-opacity="0.95"/>
+            <!-- Right wing -->
+            <rect x="310" y="118" width="50" height="70" fill="#f5f0e8" fill-opacity="0.95"/>
+            <!-- Main roof -->
+            <polygon points="54,98 200,38 346,98" fill="#6a2808" fill-opacity="0.85"/>
+            <!-- Left wing roof -->
+            <polygon points="32,118 65,92 98,118" fill="#7a3010" fill-opacity="0.8"/>
+            <!-- Right wing roof -->
+            <polygon points="302,118 335,92 368,118" fill="#7a3010" fill-opacity="0.8"/>
+            <!-- Chimneys -->
+            <rect x="235" y="48" width="14" height="26" fill="#9a4820" fill-opacity="0.82"/>
+            <rect x="148" y="56" width="12" height="22" fill="#9a4820" fill-opacity="0.82"/>
+            <!-- Main door (double) -->
+            <rect x="172" y="144" width="56" height="54" rx="2" fill="#7a4820" fill-opacity="0.78"/>
+            <line x1="200" y1="144" x2="200" y2="198" stroke="#5a3210" stroke-opacity="0.5" stroke-width="2"/>
+            <circle cx="188" cy="174" r="3" fill="#c8a070"/>
+            <circle cx="212" cy="174" r="3" fill="#c8a070"/>
+            <!-- Windows main -->
+            <rect x="82" y="110" width="34" height="26" rx="3" fill="#a8d8f0" fill-opacity="0.72"/>
+            <rect x="284" y="110" width="34" height="26" rx="3" fill="#a8d8f0" fill-opacity="0.72"/>
+            <rect x="82" y="146" width="34" height="26" rx="3" fill="#a8d8f0" fill-opacity="0.72"/>
+            <rect x="284" y="146" width="34" height="26" rx="3" fill="#a8d8f0" fill-opacity="0.72"/>
+            <!-- Wing windows -->
+            <rect x="48" y="128" width="28" height="22" rx="2" fill="#a8d8f0" fill-opacity="0.72"/>
+            <rect x="48" y="156" width="28" height="22" rx="2" fill="#a8d8f0" fill-opacity="0.72"/>
+            <rect x="324" y="128" width="28" height="22" rx="2" fill="#a8d8f0" fill-opacity="0.72"/>
+            <rect x="324" y="156" width="28" height="22" rx="2" fill="#a8d8f0" fill-opacity="0.72"/>
+            <!-- Solar panels (18) - 3 rows on main roof -->
+            <rect x="108" y="54" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="138" y="48" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="168" y="43" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="198" y="41" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="228" y="43" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="258" y="48" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="120" y="71" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <rect x="150" y="65" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <rect x="180" y="59" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <rect x="210" y="59" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <rect x="240" y="65" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <rect x="270" y="71" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+          </svg>
+          <div class="rc-type-badge">T4 Grande Moradia</div>
+          <div class="rc-family-badge">👨‍👩‍👧‍👦 5 pessoas</div>
+        </div>
+        <div class="rc-body">
+          <div class="rc-title">Família grande · Consumo muito elevado</div>
+          <div class="rc-bills-row">
+            <div class="rc-bill-before"><div class="rbv">240€</div><div class="rbl">fatura antes/mês</div></div>
+            <div class="rc-bill-arrow">→</div>
+            <div class="rc-bill-after"><div class="rbv">56€</div><div class="rbl">fatura depois/mês</div></div>
+          </div>
+          <div class="rc-specs">
+            <span class="rc-spec-chip">☀ 18 painéis</span>
+            <span class="rc-spec-chip">⚡ 10.98 kWp</span>
+            <span class="rc-spec-chip has-battery">🔋 Bateria 15 kWh</span>
+          </div>
+          <div class="rc-savings-row">
+            <div class="rc-save-cell"><div class="scl">Poupança mensal</div><div class="scv">184€</div></div>
+            <div class="rc-save-cell"><div class="scl">Poupança anual</div><div class="scv">2.208€</div></div>
+          </div>
+          <div class="rc-10yr">
+            <div class="t10l">Poupança em 10 anos</div>
+            <div class="t10v">22.080€</div>
+          </div>
+          <div class="rc-pct-row">
+            <div class="rc-pct-track"><div class="rc-pct-fill" style="width:77%"></div></div>
+            <div class="rc-pct-label">−77%</div>
+          </div>
+          <a href="#heroForm" class="rc-cta">Quero proposta similar <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        </div>
+      </div>
+
+      <!-- ── CARD 5: Quinta Rural ── -->
+      <div class="rc-card">
+        <div class="rc-img">
+          <svg viewBox="0 0 400 210" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="sky5" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9acf6a"/><stop offset="40%" stop-color="#c8e880"/><stop offset="100%" stop-color="#88b840"/></linearGradient>
+            </defs>
+            <rect width="400" height="210" fill="url(#sky5)"/>
+            <!-- Hills in background -->
+            <ellipse cx="80" cy="175" rx="100" ry="40" fill="#6aaa30" fill-opacity="0.5"/>
+            <ellipse cx="340" cy="178" rx="90" ry="35" fill="#5a9a28" fill-opacity="0.5"/>
+            <!-- Sun -->
+            <circle cx="340" cy="42" r="26" fill="#FFD600" fill-opacity="0.88"/>
+            <!-- Ground -->
+            <rect x="0" y="173" width="400" height="37" fill="#5a9818"/>
+            <!-- Main farmhouse body -->
+            <rect x="95" y="105" width="170" height="82" fill="white" fill-opacity="0.92"/>
+            <!-- Farmhouse roof (lower pitch) -->
+            <polygon points="82,105 180,62 278,105" fill="#8a4820" fill-opacity="0.82"/>
+            <!-- Barn/annexe -->
+            <rect x="278" y="118" width="70" height="69" fill="#d4c8a8" fill-opacity="0.9"/>
+            <polygon points="268,118 313,92 358,118" fill="#7a3810" fill-opacity="0.8"/>
+            <!-- Chimney -->
+            <rect x="220" y="66" width="14" height="24" fill="#9a4818" fill-opacity="0.8"/>
+            <!-- Farmhouse door -->
+            <rect x="166" y="148" width="38" height="39" rx="1" fill="#6a3a10" fill-opacity="0.78"/>
+            <!-- Farmhouse windows -->
+            <rect x="104" y="115" width="36" height="28" rx="2" fill="#a8d8f0" fill-opacity="0.7"/>
+            <line x1="122" y1="115" x2="122" y2="143" stroke="white" stroke-opacity="0.5" stroke-width="1.5"/>
+            <rect x="220" y="115" width="36" height="28" rx="2" fill="#a8d8f0" fill-opacity="0.7"/>
+            <line x1="238" y1="115" x2="238" y2="143" stroke="white" stroke-opacity="0.5" stroke-width="1.5"/>
+            <!-- Barn door -->
+            <rect x="286" y="140" width="54" height="47" rx="1" fill="#8a5828" fill-opacity="0.7"/>
+            <line x1="313" y1="140" x2="313" y2="187" stroke="#6a3810" stroke-opacity="0.5" stroke-width="2"/>
+            <!-- Barn window -->
+            <rect x="288" y="122" width="20" height="14" rx="2" fill="#a8d8f0" fill-opacity="0.65"/>
+            <!-- Solar panels on farmhouse (16) - 2 full rows -->
+            <rect x="104" y="68" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="134" y="62" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="164" y="57" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="194" y="57" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="224" y="62" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="254" y="68" width="20" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="115" y="86" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <rect x="145" y="79" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <rect x="175" y="74" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <rect x="205" y="74" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.72"/>
+            <!-- Cypress trees (typical Portuguese quinta) -->
+            <rect x="48" y="134" width="8" height="40" fill="#5a6820"/>
+            <ellipse cx="52" cy="130" rx="10" ry="22" fill="#3a5818" fill-opacity="0.9"/>
+            <rect x="64" y="140" width="7" height="34" fill="#5a6820"/>
+            <ellipse cx="68" cy="136" rx="8" ry="18" fill="#4a6820" fill-opacity="0.9"/>
+            <!-- Olive tree -->
+            <rect x="355" y="152" width="8" height="22" fill="#7a5820"/>
+            <ellipse cx="359" cy="144" rx="22" ry="18" fill="#7a9a38" fill-opacity="0.85"/>
+            <ellipse cx="349" cy="150" rx="12" ry="10" fill="#8aaa48" fill-opacity="0.7"/>
+          </svg>
+          <div class="rc-type-badge">Quinta Rural</div>
+          <div class="rc-family-badge">👨‍👩‍👦 3 pessoas</div>
+        </div>
+        <div class="rc-body">
+          <div class="rc-title">Quinta com anexo · Consumo elevado</div>
+          <div class="rc-bills-row">
+            <div class="rc-bill-before"><div class="rbv">192€</div><div class="rbl">fatura antes/mês</div></div>
+            <div class="rc-bill-arrow">→</div>
+            <div class="rc-bill-after"><div class="rbv">52€</div><div class="rbl">fatura depois/mês</div></div>
+          </div>
+          <div class="rc-specs">
+            <span class="rc-spec-chip">☀ 16 painéis</span>
+            <span class="rc-spec-chip">⚡ 9.76 kWp</span>
+            <span class="rc-spec-chip has-battery">🔋 Bateria 10 kWh</span>
+          </div>
+          <div class="rc-savings-row">
+            <div class="rc-save-cell"><div class="scl">Poupança mensal</div><div class="scv">140€</div></div>
+            <div class="rc-save-cell"><div class="scl">Poupança anual</div><div class="scv">1.680€</div></div>
+          </div>
+          <div class="rc-10yr">
+            <div class="t10l">Poupança em 10 anos</div>
+            <div class="t10v">16.800€</div>
+          </div>
+          <div class="rc-pct-row">
+            <div class="rc-pct-track"><div class="rc-pct-fill" style="width:73%"></div></div>
+            <div class="rc-pct-label">−73%</div>
+          </div>
+          <a href="#heroForm" class="rc-cta">Quero proposta similar <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        </div>
+      </div>
+
+      <!-- ── CARD 6: T3 + Carro Elétrico ── -->
+      <div class="rc-card">
+        <div class="rc-img">
+          <svg viewBox="0 0 400 210" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="sky6" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#b8d0f0"/><stop offset="50%" stop-color="#d8e8f8"/><stop offset="100%" stop-color="#7aac48"/></linearGradient>
+            </defs>
+            <rect width="400" height="210" fill="url(#sky6)"/>
+            <!-- Subtle cloud -->
+            <ellipse cx="280" cy="38" rx="44" ry="16" fill="white" fill-opacity="0.55"/>
+            <ellipse cx="310" cy="32" rx="32" ry="13" fill="white" fill-opacity="0.55"/>
+            <circle cx="70" cy="42" r="24" fill="#FFD600" fill-opacity="0.88"/>
+            <g stroke="#FFD600" stroke-opacity="0.35" stroke-width="2">
+              <line x1="70" y1="12" x2="70" y2="6"/><line x1="94" y1="18" x2="98" y2="14"/>
+              <line x1="100" y1="42" x2="106" y2="42"/><line x1="46" y1="18" x2="42" y2="14"/>
+            </g>
+            <!-- Ground -->
+            <rect x="0" y="173" width="400" height="37" fill="#62a030"/>
+            <!-- Driveway -->
+            <rect x="240" y="160" width="130" height="50" fill="#c8c0b0" fill-opacity="0.7"/>
+            <line x1="304" y1="160" x2="304" y2="210" stroke="white" stroke-opacity="0.3" stroke-width="2" stroke-dasharray="8,8"/>
+            <!-- House -->
+            <rect x="80" y="100" width="200" height="90" fill="white" fill-opacity="0.95"/>
+            <polygon points="64,100 180,40 296,100" fill="#5a3880" fill-opacity="0.72"/>
+            <rect x="228" y="50" width="14" height="26" fill="#7a5098" fill-opacity="0.75"/>
+            <!-- Door -->
+            <rect x="158" y="148" width="44" height="42" rx="2" fill="#5a3878" fill-opacity="0.7"/>
+            <!-- EV Charger on wall -->
+            <rect x="92" y="136" width="20" height="28" rx="3" fill="#2a3a88" fill-opacity="0.85"/>
+            <rect x="95" y="140" width="14" height="14" rx="2" fill="#5af0a8" fill-opacity="0.75"/>
+            <line x1="102" y1="154" x2="102" y2="165" stroke="#5af0a8" stroke-opacity="0.7" stroke-width="2"/>
+            <!-- Windows -->
+            <rect x="158" y="108" width="44" height="30" rx="3" fill="#a8d8f0" fill-opacity="0.7"/>
+            <line x1="180" y1="108" x2="180" y2="138" stroke="white" stroke-opacity="0.5" stroke-width="1.5"/>
+            <rect x="244" y="108" width="34" height="30" rx="3" fill="#a8d8f0" fill-opacity="0.7"/>
+            <!-- Solar panels (12) - 2 rows -->
+            <rect x="100" y="57" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="130" y="51" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="160" y="46" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="190" y="46" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="220" y="51" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="250" y="57" width="26" height="16" rx="2" fill="#1a2a8c" fill-opacity="0.88"/>
+            <rect x="120" y="75" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.7"/>
+            <rect x="150" y="69" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.7"/>
+            <rect x="180" y="64" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.7"/>
+            <rect x="210" y="64" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.7"/>
+            <rect x="240" y="69" width="26" height="15" rx="2" fill="#1a2a8c" fill-opacity="0.7"/>
+            <!-- Electric car on driveway -->
+            <rect x="258" y="152" width="88" height="34" rx="8" fill="#2a3a88" fill-opacity="0.82"/>
+            <!-- Windshield -->
+            <polygon points="268,152 284,135 324,135 340,152" fill="#a8d8f0" fill-opacity="0.7"/>
+            <!-- Windows car -->
+            <rect x="288" y="138" width="28" height="14" rx="2" fill="#a8d8f0" fill-opacity="0.6"/>
+            <!-- Wheels -->
+            <circle cx="282" cy="186" r="11" fill="#1a1a2a" fill-opacity="0.85"/>
+            <circle cx="282" cy="186" r="6" fill="#5a6a88" fill-opacity="0.8"/>
+            <circle cx="334" cy="186" r="11" fill="#1a1a2a" fill-opacity="0.85"/>
+            <circle cx="334" cy="186" r="6" fill="#5a6a88" fill-opacity="0.8"/>
+            <!-- Charge cable -->
+            <path d="M112 164 Q120 170 126 164 Q134 158 130 150" stroke="#5af0a8" stroke-opacity="0.7" stroke-width="2" fill="none"/>
+            <circle cx="130" cy="148" r="4" fill="#5af0a8" fill-opacity="0.8"/>
+            <!-- Tree -->
+            <rect x="44" y="152" width="9" height="22" fill="#7a5020"/>
+            <ellipse cx="49" cy="144" rx="20" ry="18" fill="#4a9018" fill-opacity="0.85"/>
+          </svg>
+          <div class="rc-type-badge">T3 + Carro Elétrico</div>
+          <div class="rc-family-badge">👨‍👩‍👧‍👦 4 pessoas</div>
+        </div>
+        <div class="rc-body">
+          <div class="rc-title">Família com EV · Carregamento em casa</div>
+          <div class="rc-bills-row">
+            <div class="rc-bill-before"><div class="rbv">162€</div><div class="rbl">fatura antes/mês</div></div>
+            <div class="rc-bill-arrow">→</div>
+            <div class="rc-bill-after"><div class="rbv">38€</div><div class="rbl">fatura depois/mês</div></div>
+          </div>
+          <div class="rc-specs">
+            <span class="rc-spec-chip">☀ 12 painéis</span>
+            <span class="rc-spec-chip">⚡ 7.32 kWp</span>
+            <span class="rc-spec-chip has-battery">🔋 Bateria 10 kWh</span>
+          </div>
+          <div class="rc-savings-row">
+            <div class="rc-save-cell"><div class="scl">Poupança mensal</div><div class="scv">124€</div></div>
+            <div class="rc-save-cell"><div class="scl">Poupança anual</div><div class="scv">1.488€</div></div>
+          </div>
+          <div class="rc-10yr">
+            <div class="t10l">Poupança em 10 anos</div>
+            <div class="t10v">14.880€</div>
+          </div>
+          <div class="rc-pct-row">
+            <div class="rc-pct-track"><div class="rc-pct-fill" style="width:77%"></div></div>
+            <div class="rc-pct-label">−77%</div>
+          </div>
+          <a href="#heroForm" class="rc-cta">Quero proposta similar <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        </div>
+      </div>
+
+    </div><!-- /rc-track -->
+
+    <button class="rc-arrow" id="rcNext" aria-label="Próximo">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M6.75 4.5L11.25 9l-4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div><!-- /rc-outer -->
+
+  <div class="rc-dots">
+    <button class="rc-dot active" data-index="0"></button>
+    <button class="rc-dot" data-index="1"></button>
+    <button class="rc-dot" data-index="2"></button>
+    <button class="rc-dot" data-index="3"></button>
+  </div>
+
+</section>
+
+<script>
+(function(){
+  const track = document.getElementById('rcTrack');
+  const prev  = document.getElementById('rcPrev');
+  const next  = document.getElementById('rcNext');
+  const dots  = Array.from(document.querySelectorAll('.rc-dot'));
+
+  function cardW() {
+    const c = track.querySelector('.rc-card');
+    const gap = parseInt(getComputedStyle(track).gap) || 20;
+    return c ? c.offsetWidth + gap : 420;
+  }
+  function updateDots() {
+    const idx = Math.round(track.scrollLeft / cardW());
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+  prev.addEventListener('click', () => track.scrollBy({ left: -cardW(), behavior: 'smooth' }));
+  next.addEventListener('click', () => track.scrollBy({ left:  cardW(), behavior: 'smooth' }));
+  dots.forEach(d => d.addEventListener('click', () => {
+    track.scrollTo({ left: parseInt(d.dataset.index) * cardW(), behavior: 'smooth' });
+  }));
+  track.addEventListener('scroll', updateDots, { passive: true });
+
+  let isDown = false, startX, scrollLeft;
+  track.addEventListener('mousedown', e => {
+    isDown = true; track.classList.add('is-dragging');
+    startX = e.pageX - track.offsetLeft; scrollLeft = track.scrollLeft;
+  });
+  window.addEventListener('mouseup', () => { isDown = false; track.classList.remove('is-dragging'); });
+  track.addEventListener('mousemove', e => {
+    if (!isDown) return;
+    e.preventDefault();
+    track.scrollLeft = scrollLeft - (e.pageX - track.offsetLeft - startX) * 1.2;
+  });
+  updateDots();
+})();
+</script>
+
+<!-- ═══ SAVINGS TABLE ═══ -->
+<section class="stab-section">
+  <div class="container">
+    <div class="stab-intro">
+      <div class="section-eyebrow">A sua poupança real</div>
+      <div class="section-title">Quanto pode poupar com<br>a Sun to Sun?</div>
+      <div class="section-sub" style="margin-top:12px;">Calcule a poupança estimada com base no tipo de habitação. Cada caso é único — o seu estudo gratuito dá-lhe os números exactos.</div>
+    </div>
+
+    <div class="stab-table-wrap">
+      <table class="stab-table">
+        <thead>
+          <tr>
+            <th>Tipo de habitação</th>
+            <th>Painéis</th>
+            <th>Energia gerada/ano</th>
+            <th>Bateria</th>
+            <th>Redução</th>
+            <th>Poupança anual</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="stab-house-cell">
+                <div class="stab-house-icon" style="background:#e8f4fd;">🏢</div>
+                <div>
+                  <div class="stab-house-name">T2 Apartamento</div>
+                  <div class="stab-house-sub">2 pessoas · consumo baixo (~180 kWh/mês)</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="stab-panels">6 painéis</span><br><span class="stab-kwh">3.66 kWp</span></td>
+            <td><span class="stab-panels">~5.000 kWh</span></td>
+            <td><span class="stab-bat no">Não incluída</span></td>
+            <td class="stab-bar-cell">
+              <div class="stab-bar-outer">
+                <div class="stab-bar-bg"><div class="stab-bar-in" style="width:65%"></div></div>
+                <span class="stab-pct">−65%</span>
+              </div>
+            </td>
+            <td class="stab-savings-cell">
+              <div class="stab-savings-main">528€</div>
+              <div class="stab-savings-sub">44€/mês</div>
+              <div class="stab-savings-10yr">≈ 5.280€ em 10 anos</div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="stab-house-cell">
+                <div class="stab-house-icon" style="background:#f2f9ec;">🏠</div>
+                <div>
+                  <div class="stab-house-name">T3 Moradia Familiar</div>
+                  <div class="stab-house-sub">4 pessoas · consumo médio (~320 kWh/mês)</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="stab-panels">10 painéis</span><br><span class="stab-kwh">6.10 kWp</span></td>
+            <td><span class="stab-panels">~8.300 kWh</span></td>
+            <td><span class="stab-bat no">Não incluída</span></td>
+            <td class="stab-bar-cell">
+              <div class="stab-bar-outer">
+                <div class="stab-bar-bg"><div class="stab-bar-in" style="width:72%"></div></div>
+                <span class="stab-pct">−72%</span>
+              </div>
+            </td>
+            <td class="stab-savings-cell">
+              <div class="stab-savings-main">996€</div>
+              <div class="stab-savings-sub">83€/mês</div>
+              <div class="stab-savings-10yr">≈ 9.960€ em 10 anos</div>
+            </td>
+          </tr>
+          <tr style="background:#fdfff9;">
+            <td>
+              <div class="stab-house-cell">
+                <div class="stab-house-icon" style="background:#fff8e1;">🏡</div>
+                <div>
+                  <div class="stab-house-name">T3 com Piscina</div>
+                  <div class="stab-house-sub">4 pessoas + piscina · consumo elevado (~480 kWh/mês)</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="stab-panels">14 painéis</span><br><span class="stab-kwh">8.54 kWp</span></td>
+            <td><span class="stab-panels">~11.600 kWh</span></td>
+            <td><span class="stab-bat yes">10 kWh ✓</span></td>
+            <td class="stab-bar-cell">
+              <div class="stab-bar-outer">
+                <div class="stab-bar-bg"><div class="stab-bar-in" style="width:74%"></div></div>
+                <span class="stab-pct">−74%</span>
+              </div>
+            </td>
+            <td class="stab-savings-cell">
+              <div class="stab-savings-main">1.572€</div>
+              <div class="stab-savings-sub">131€/mês</div>
+              <div class="stab-savings-10yr">≈ 15.720€ em 10 anos</div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="stab-house-cell">
+                <div class="stab-house-icon" style="background:#fff2ee;">🏰</div>
+                <div>
+                  <div class="stab-house-name">T4 Grande Moradia</div>
+                  <div class="stab-house-sub">5 pessoas · consumo muito elevado (~650 kWh/mês)</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="stab-panels">18 painéis</span><br><span class="stab-kwh">10.98 kWp</span></td>
+            <td><span class="stab-panels">~14.900 kWh</span></td>
+            <td><span class="stab-bat yes">15 kWh ✓</span></td>
+            <td class="stab-bar-cell">
+              <div class="stab-bar-outer">
+                <div class="stab-bar-bg"><div class="stab-bar-in" style="width:77%"></div></div>
+                <span class="stab-pct">−77%</span>
+              </div>
+            </td>
+            <td class="stab-savings-cell">
+              <div class="stab-savings-main">2.208€</div>
+              <div class="stab-savings-sub">184€/mês</div>
+              <div class="stab-savings-10yr">≈ 22.080€ em 10 anos</div>
+            </td>
+          </tr>
+          <tr style="background:#fdfff9;">
+            <td>
+              <div class="stab-house-cell">
+                <div class="stab-house-icon" style="background:#f0f7e8;">🌿</div>
+                <div>
+                  <div class="stab-house-name">Quinta Rural</div>
+                  <div class="stab-house-sub">3 pessoas + anexo · consumo elevado (~520 kWh/mês)</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="stab-panels">16 painéis</span><br><span class="stab-kwh">9.76 kWp</span></td>
+            <td><span class="stab-panels">~13.200 kWh</span></td>
+            <td><span class="stab-bat yes">10 kWh ✓</span></td>
+            <td class="stab-bar-cell">
+              <div class="stab-bar-outer">
+                <div class="stab-bar-bg"><div class="stab-bar-in" style="width:73%"></div></div>
+                <span class="stab-pct">−73%</span>
+              </div>
+            </td>
+            <td class="stab-savings-cell">
+              <div class="stab-savings-main">1.680€</div>
+              <div class="stab-savings-sub">140€/mês</div>
+              <div class="stab-savings-10yr">≈ 16.800€ em 10 anos</div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="stab-house-cell">
+                <div class="stab-house-icon" style="background:#edf2ff;">⚡</div>
+                <div>
+                  <div class="stab-house-name">T3 + Carro Elétrico</div>
+                  <div class="stab-house-sub">4 pessoas + VE · consumo acrescido (~420 kWh/mês)</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="stab-panels">12 painéis</span><br><span class="stab-kwh">7.32 kWp</span></td>
+            <td><span class="stab-panels">~9.900 kWh</span></td>
+            <td><span class="stab-bat yes">10 kWh ✓</span></td>
+            <td class="stab-bar-cell">
+              <div class="stab-bar-outer">
+                <div class="stab-bar-bg"><div class="stab-bar-in" style="width:77%"></div></div>
+                <span class="stab-pct">−77%</span>
+              </div>
+            </td>
+            <td class="stab-savings-cell">
+              <div class="stab-savings-main">1.488€</div>
+              <div class="stab-savings-sub">124€/mês</div>
+              <div class="stab-savings-10yr">≈ 14.880€ em 10 anos</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="stab-cta-row">
+      <p class="stab-note">Valores estimados com base em instalações reais. A poupança concreta depende da sua exposição solar, consumo e localização. O seu estudo personalizado é gratuito.</p>
+      <a href="#heroForm" class="hero-cta" style="font-size:13px;padding:14px 28px;white-space:nowrap;">CALCULAR A MINHA POUPANÇA →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PRICING ═══ -->
+<section class="section section-gray">
+  <div class="container">
+    <div class="section-eyebrow">Perfis típicos de instalação</div>
+    <div class="pricing-title">Não adies mais — cada mês sem painéis é dinheiro que perdes</div>
+    <div class="pricing-sub">O sistema paga-se a si próprio. Depois, é poupança pura durante 25+ anos. Veja o que famílias como a sua já estão a poupar.</div>
+
+    <div class="plans-grid" style="gap:24px;margin-top:40px;">
+
+      <!-- CARD 1: Essencial -->
+      <div class="plan-card" style="border-color:var(--border);padding:0;border-radius:16px;overflow:visible;">
+        <div style="background:linear-gradient(135deg,#e8f4fd 0%,#d0ecfa 100%);padding:28px 28px 22px;border-radius:16px 16px 0 0;border-bottom:1px solid rgba(0,0,0,0.06);">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#3a7a9a;margin-bottom:10px;">Para faturas até 120€</div>
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--dark);letter-spacing:-0.02em;line-height:1.2;">Sistema Essencial</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:6px;">Casal ou família pequena · T2–T3</div>
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:3px;">
+            <div style="display:flex;gap:3px;">
+              <div style="width:28px;height:18px;background:#1a2a8c;border-radius:3px;opacity:0.85;"></div>
+              <div style="width:28px;height:18px;background:#1a2a8c;border-radius:3px;opacity:0.85;"></div>
+              <div style="width:28px;height:18px;background:#1a2a8c;border-radius:3px;opacity:0.85;"></div>
+            </div>
+            <div style="display:flex;gap:3px;">
+              <div style="width:28px;height:18px;background:#1a2a8c;border-radius:3px;opacity:0.55;"></div>
+              <div style="width:28px;height:18px;background:#1a2a8c;border-radius:3px;opacity:0.55;"></div>
+              <div style="width:28px;height:18px;background:#1a2a8c;border-radius:3px;opacity:0.55;"></div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:#3a7a9a;margin-top:6px;">6 painéis · bateria 5 kWh</div>
+          </div>
+        </div>
+        <div style="padding:22px 28px 26px;background:#fff;border-radius:0 0 16px 16px;">
+          <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="rgba(106,185,38,0.15)"/><polyline points="4.5,8.5 7,11 11.5,5.5" stroke="#4a8a14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Bateria 5 kWh incluída
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="rgba(106,185,38,0.15)"/><polyline points="4.5,8.5 7,11 11.5,5.5" stroke="#4a8a14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Retorno estimado em 5–6 anos
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="rgba(106,185,38,0.15)"/><polyline points="4.5,8.5 7,11 11.5,5.5" stroke="#4a8a14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              30 anos de garantia de produção
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="rgba(106,185,38,0.15)"/><polyline points="4.5,8.5 7,11 11.5,5.5" stroke="#4a8a14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Registo DGEG incluído
+            </div>
+          </div>
+          <div style="background:var(--gray-bg);border-radius:10px;padding:16px 18px;margin-bottom:18px;">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:10px;">Poupança estimada</div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;">
+              <div>
+                <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;">Por ano</div>
+                <div style="font-family:var(--font-display);font-size:32px;font-weight:900;color:var(--green);letter-spacing:-0.04em;line-height:1;">1.300€</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;">Em 10 anos</div>
+                <div style="font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--accent);letter-spacing:-0.03em;">13.000€</div>
+                <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;margin-top:6px;">Em 25 anos</div>
+                <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--brand-green);letter-spacing:-0.02em;">32.500€</div>
+              </div>
+            </div>
+          </div>
+          <button class="plan-cta outline" onclick="document.getElementById('heroForm').scrollIntoView({behavior:'smooth'})">CALCULAR O MEU SISTEMA</button>
+        </div>
+      </div>
+
+      <!-- CARD 2: Família (featured) -->
+      <div style="position:relative;">
+        <div style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:5px 16px;border-radius:100px;white-space:nowrap;box-shadow:0 2px 10px rgba(232,56,10,0.35);z-index:10;">Mais escolhido</div>
+        <div class="plan-card" style="border-color:var(--accent);padding:0;border-radius:16px;overflow:visible;box-shadow:0 4px 32px rgba(232,56,10,0.15);">
+          <div style="background:linear-gradient(135deg,#fff2ee 0%,#ffe4d9 100%);padding:28px 28px 22px;border-radius:16px 16px 0 0;border-bottom:1px solid rgba(232,56,10,0.12);">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent);margin-bottom:10px;">Para faturas até 160€</div>
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--dark);letter-spacing:-0.02em;line-height:1.2;">Sistema Família</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:6px;">Família de 4 · T3–T4 com bateria grande</div>
+            <div style="margin-top:16px;display:flex;flex-direction:column;gap:3px;">
+              <div style="display:flex;gap:3px;">
+                <div style="width:25px;height:17px;background:#1a2a8c;border-radius:3px;opacity:0.9;"></div>
+                <div style="width:25px;height:17px;background:#1a2a8c;border-radius:3px;opacity:0.9;"></div>
+                <div style="width:25px;height:17px;background:#1a2a8c;border-radius:3px;opacity:0.9;"></div>
+                <div style="width:25px;height:17px;background:#1a2a8c;border-radius:3px;opacity:0.9;"></div>
+              </div>
+              <div style="display:flex;gap:3px;">
+                <div style="width:25px;height:17px;background:#1a2a8c;border-radius:3px;opacity:0.6;"></div>
+                <div style="width:25px;height:17px;background:#1a2a8c;border-radius:3px;opacity:0.6;"></div>
+                <div style="width:25px;height:17px;background:#1a2a8c;border-radius:3px;opacity:0.6;"></div>
+                <div style="width:25px;height:17px;background:#1a2a8c;border-radius:3px;opacity:0.6;"></div>
+              </div>
+              <div style="font-size:11px;font-weight:700;color:var(--accent);margin-top:6px;">8 painéis · bateria 15 kWh</div>
+            </div>
+          </div>
+          <div style="padding:22px 28px 26px;background:#fff;border-radius:0 0 16px 16px;">
+            <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:20px;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text);">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="rgba(232,56,10,0.12)"/><polyline points="4.5,8.5 7,11 11.5,5.5" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Bateria 15 kWh — backup antiapagão
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text);">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="rgba(232,56,10,0.12)"/><polyline points="4.5,8.5 7,11 11.5,5.5" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Retorno estimado em 5–7 anos
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text);">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="rgba(232,56,10,0.12)"/><polyline points="4.5,8.5 7,11 11.5,5.5" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                30 anos de garantia · DGEG incluído
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text);">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="rgba(232,56,10,0.12)"/><polyline points="4.5,8.5 7,11 11.5,5.5" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                App de monitorização em tempo real
+              </div>
+            </div>
+            <div style="background:var(--accent-light);border-radius:10px;padding:16px 18px;margin-bottom:18px;">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:10px;">Poupança estimada</div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;">
+                <div>
+                  <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;">Por ano</div>
+                  <div style="font-family:var(--font-display);font-size:32px;font-weight:900;color:var(--green);letter-spacing:-0.04em;line-height:1;">1.700€</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;">Em 10 anos</div>
+                  <div style="font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--accent);letter-spacing:-0.03em;">17.000€</div>
+                  <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;margin-top:6px;">Em 25 anos</div>
+                  <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--brand-green);letter-spacing:-0.02em;">42.500€</div>
+                </div>
+              </div>
+            </div>
+            <button class="plan-cta fill" onclick="document.getElementById('heroForm').scrollIntoView({behavior:'smooth'})">CALCULAR O MEU SISTEMA</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: Premium -->
+      <div class="plan-card" style="border-color:var(--border);padding:0;border-radius:16px;overflow:visible;">
+        <div style="background:linear-gradient(135deg,#f0f7e8 0%,#e0f0d0 100%);padding:28px 28px 22px;border-radius:16px 16px 0 0;border-bottom:1px solid rgba(74,138,20,0.1);">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--brand-green);margin-bottom:10px;">Para faturas até 240€+</div>
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--dark);letter-spacing:-0.02em;line-height:1.2;">Sistema Premium</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:6px;">T4 · Quinta · EV · Piscina · máxima autonomia</div>
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:3px;">
+            <div style="display:flex;gap:3px;">
+              <div style="width:22px;height:15px;background:#1a2a8c;border-radius:3px;opacity:0.9;"></div>
+              <div style="width:22px;height:15px;background:#1a2a8c;border-radius:3px;opacity:0.9;"></div>
+              <div style="width:22px;height:15px;background:#1a2a8c;border-radius:3px;opacity:0.9;"></div>
+              <div style="width:22px;height:15px;background:#1a2a8c;border-radius:3px;opacity:0.9;"></div>
+              <div style="width:22px;height:15px;background:#1a2a8c;border-radius:3px;opacity:0.9;"></div>
+              <div style="width:22px;height:15px;background:#1a2a8c;border-radius:3px;opacity:0.9;"></div>
+            </div>
+            <div style="display:flex;gap:3px;">
+              <div style="width:22px;height:15px;background:#1a2a8c;border-radius:3px;opacity:0.6;"></div>
+              <div style="width:22px;height:15px;background:#1a2a8c;border-radius:3px;opacity:0.6;"></div>
+              <div style="width:22px;height:15px;background:#1a2a8c;border-radius:3px;opacity:0.6;"></div>
+              <div style="width:22px;height:15px;background:#1a2a8c;border-radius:3px;opacity:0.6;"></div>
+              <div style="width:22px;height:15px;background:#1a2a8c;border-radius:3px;opacity:0.6;"></div>
+              <div style="width:22px;height:15px;background:#1a2a8c;border-radius:3px;opacity:0.6;"></div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--brand-green);margin-top:6px;">12 painéis · bateria 32 kWh</div>
+          </div>
+        </div>
+        <div style="padding:22px 28px 26px;background:#fff;border-radius:0 0 16px 16px;">
+          <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="rgba(74,138,20,0.12)"/><polyline points="4.5,8.5 7,11 11.5,5.5" stroke="var(--brand-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Bateria 32 kWh — autonomia total
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="rgba(74,138,20,0.12)"/><polyline points="4.5,8.5 7,11 11.5,5.5" stroke="var(--brand-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Compatível com carregador EV
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="rgba(74,138,20,0.12)"/><polyline points="4.5,8.5 7,11 11.5,5.5" stroke="var(--brand-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Retorno estimado em 5–7 anos
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="rgba(74,138,20,0.12)"/><polyline points="4.5,8.5 7,11 11.5,5.5" stroke="var(--brand-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Gestão completa DGEG + monitorização
+            </div>
+          </div>
+          <div style="background:#f0f7e8;border-radius:10px;padding:16px 18px;margin-bottom:18px;">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--brand-green);margin-bottom:10px;">Poupança estimada</div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;">
+              <div>
+                <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;">Por ano</div>
+                <div style="font-family:var(--font-display);font-size:32px;font-weight:900;color:var(--green);letter-spacing:-0.04em;line-height:1;">3.350€</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;">Em 10 anos</div>
+                <div style="font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--accent);letter-spacing:-0.03em;">33.500€</div>
+                <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;margin-top:6px;">Em 25 anos</div>
+                <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--brand-green);letter-spacing:-0.02em;">83.750€</div>
+              </div>
+            </div>
+          </div>
+          <button class="plan-cta outline" onclick="document.getElementById('heroForm').scrollIntoView({behavior:'smooth'})">CALCULAR O MEU SISTEMA</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="plan-note" style="margin-top:24px;text-align:center;max-width:680px;margin-left:auto;margin-right:auto;">Poupanças estimadas com base em instalações reais. Os valores concretos dependem do consumo, localização e exposição solar. O estudo personalizado é gratuito e sem compromisso.</div>
+  </div>
+</section>
+
 <!-- ═══ INTRO / AS #1 ═══ -->
 <section class="section">
   <div class="container">
@@ -1523,70 +2967,7 @@
   </div>
 </section>
 
-<!-- ═══ RESULTS / BEFORE-AFTER ═══ -->
-<section class="section section-gray">
-  <div class="container">
-    <div class="section-eyebrow">Resultados reais</div>
-    <div class="section-title">Instalações para todos os perfis de consumo</div>
-    <div class="section-sub">Cada sistema é dimensionado ao seu caso. Aqui estão exemplos reais de propostas que preparámos.</div>
-    <div class="results-grid">
-      <div class="result-card">
-        <div class="result-img">
-          <img src="https://placehold.co/400x190/1a3a10/5acb6d?text=Moradia+T3" alt="Moradia T3" style="width:100%;height:100%;object-fit:cover;" />
-          <div class="result-labels">
-            <div class="result-label">Antes</div>
-            <div class="result-label after">Depois</div>
-          </div>
-        </div>
-        <div class="result-body">
-          <div class="result-bills">
-            <div class="bill-before"><div class="amount">120€</div><div class="label">/mês</div></div>
-            <div class="bill-arrow">→</div>
-            <div class="bill-after"><div class="amount">36€</div><div class="label">/mês</div></div>
-          </div>
-          <div class="result-savings">Poupança: 70% · 1.008€/ano</div>
-          <div class="result-specs">7 painéis · 4.27 kWp · moradia T3</div>
-        </div>
-      </div>
-      <div class="result-card">
-        <div class="result-img">
-          <img src="https://placehold.co/400x190/1a2a3a/5ab4cb?text=Empresa" alt="Empresa" style="width:100%;height:100%;object-fit:cover;" />
-          <div class="result-labels">
-            <div class="result-label">Antes</div>
-            <div class="result-label after">Depois</div>
-          </div>
-        </div>
-        <div class="result-body">
-          <div class="result-bills">
-            <div class="bill-before"><div class="amount">200€</div><div class="label">/mês</div></div>
-            <div class="bill-arrow">→</div>
-            <div class="bill-after"><div class="amount">60€</div><div class="label">/mês</div></div>
-          </div>
-          <div class="result-savings">Poupança: 70% · 1.680€/ano</div>
-          <div class="result-specs">8 painéis + bateria 15 kWh · empresa</div>
-        </div>
-      </div>
-      <div class="result-card">
-        <div class="result-img">
-          <img src="https://placehold.co/400x190/2a1a0a/cb8a5a?text=Casa+com+bateria" alt="Casa com bateria" style="width:100%;height:100%;object-fit:cover;" />
-          <div class="result-labels">
-            <div class="result-label">Antes</div>
-            <div class="result-label after">Depois</div>
-          </div>
-        </div>
-        <div class="result-body">
-          <div class="result-bills">
-            <div class="bill-before"><div class="amount">85€</div><div class="label">/mês</div></div>
-            <div class="bill-arrow">→</div>
-            <div class="bill-after"><div class="amount">30€</div><div class="label">/mês</div></div>
-          </div>
-          <div class="result-savings">Poupança: 65% · 660€/ano</div>
-          <div class="result-specs">6 painéis · 3.2 kWp · bateria 5 kWh</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+
 
 <!-- ═══ HOW IT WORKS ═══ -->
 <section class="section">
@@ -1719,63 +3100,7 @@
   </div>
 </section>
 
-<!-- ═══ PRICING ═══ -->
-<section class="section section-gray">
-  <div class="container">
-    <div class="section-eyebrow">Preços e financiamento</div>
-    <div class="pricing-title">Não adies mais — cada mês sem painéis é dinheiro que perdes</div>
-    <div class="pricing-sub">O sistema paga-se a si próprio. Depois, é poupança pura durante 20+ anos. Valores indicativos — o teu estudo é gratuito e personalizado.</div>
-    <div class="plans-grid">
-      <div class="plan-card">
-        <div class="plan-name">Sistema Base</div>
-        <div class="plan-price">~4.000–5.500€</div>
-        <div class="plan-price-label">IVA incluído</div>
-        <div class="plan-monthly">ou desde <strong>63€/mês</strong></div>
-        <div class="plan-savings">Poupança ~750€/ano</div>
-        <div class="plan-features">
-          <div class="plan-feature"><div class="plan-feature-dot"></div> 6–7 painéis</div>
-          <div class="plan-feature"><div class="plan-feature-dot"></div> Potência ~3–4 kWp</div>
-          <div class="plan-feature"><div class="plan-feature-dot"></div> Retorno ~5–6 anos</div>
-          <div class="plan-feature"><div class="plan-feature-dot"></div> Garantia de produção 30 anos</div>
-          <div class="plan-feature"><div class="plan-feature-dot"></div> App de monitorização incluída</div>
-        </div>
-        <button class="plan-cta outline" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">QUERO ESTE SISTEMA</button>
-      </div>
-      <div class="plan-card featured">
-        <div class="plan-badge">Mais escolhido</div>
-        <div class="plan-name">Sistema Família</div>
-        <div class="plan-price">~7.000–9.500€</div>
-        <div class="plan-price-label">IVA incluído</div>
-        <div class="plan-monthly">ou desde <strong>130€/mês</strong></div>
-        <div class="plan-savings">Poupança ~1.700€/ano</div>
-        <div class="plan-features">
-          <div class="plan-feature"><div class="plan-feature-dot"></div> 8 painéis + bateria</div>
-          <div class="plan-feature"><div class="plan-feature-dot"></div> Potência ~4.8 kWp</div>
-          <div class="plan-feature"><div class="plan-feature-dot"></div> Backup antiapagão incluído</div>
-          <div class="plan-feature"><div class="plan-feature-dot"></div> Garantia de produção 30 anos</div>
-          <div class="plan-feature"><div class="plan-feature-dot"></div> Gestão DGEG incluída</div>
-        </div>
-        <button class="plan-cta fill" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">QUERO ESTE SISTEMA</button>
-      </div>
-      <div class="plan-card">
-        <div class="plan-name">Sistema Premium</div>
-        <div class="plan-price" style="font-size:24px;margin-bottom:0;">Sob consulta</div>
-        <div class="plan-price-label">projetos à medida</div>
-        <div class="plan-monthly"><strong>Orçamento personalizado</strong></div>
-        <div class="plan-savings">Autonomia máxima</div>
-        <div class="plan-features">
-          <div class="plan-feature"><div class="plan-feature-dot"></div> 10+ painéis</div>
-          <div class="plan-feature"><div class="plan-feature-dot"></div> Bateria 15 kWh</div>
-          <div class="plan-feature"><div class="plan-feature-dot"></div> Carregador VE incluído</div>
-          <div class="plan-feature"><div class="plan-feature-dot"></div> Gestão completa do processo</div>
-          <div class="plan-feature"><div class="plan-feature-dot"></div> Suporte prioritário</div>
-        </div>
-        <button class="plan-cta outline" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">PEDIR ORÇAMENTO</button>
-        <div class="plan-note">Financiamento sujeito a aprovação. Valores estimados com base em projetos reais — o seu estudo personalizado é gratuito e sem compromisso.</div>
-      </div>
-    </div>
-  </div>
-</section>
+
 
 <!-- ═══ FINAL CTA ═══ -->
 <section class="section final-cta">
