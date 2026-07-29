@@ -2876,19 +2876,21 @@
         );
       }
 
-      if (
-        data.lead_quality === 'qualified' &&
-        data.event_id
-      ) {
-        storageSet(
-          'meta_lead_event_id',
-          data.event_id
-        );
-      } else {
-        storageRemove('meta_lead_event_id');
-      }
+      console.log('Resposta da API /api/lead:', data);
 
-      storageRemove('meta_pending_event_id');
+      if (data.event_id) {
+        try {
+          sessionStorage.setItem(
+            'meta_lead_event_id',
+            data.event_id
+          );
+        } catch (storageError) {
+          console.error(
+            'Não foi possível guardar o event ID:',
+            storageError
+          );
+        }
+      }
 
       if (typeof beforeRedirect === 'function') {
         beforeRedirect(data);
