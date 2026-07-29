@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pedido Recebido — Sun to Sun</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --accent: #E8380A;
+      --accent-hover: #C52D00;
+      --dark: #1A1C1E;
+      --text: #262D33;
+      --muted: #717171;
+      --green: #6AB926;
+      --brand-green: #4a8a14;
+      --font: 'Open Sans', sans-serif;
+      --font-display: 'Montserrat', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--brand-green);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    .site-header {
+      background: var(--brand-green);
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      height: 68px;
+    }
+    .header-inner {
+      max-width: 1200px; margin: 0 auto;
+      width: 100%; height: 100%;
+      padding: 0 48px; display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    .logo-img { height: 56px; width: auto; }
+
+    /* ── MAIN ── */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 64px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    main::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 70% at 15% 80%, rgba(255,255,255,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 85% 20%, rgba(255,200,0,0.07) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .card {
+      position: relative; z-index: 1;
+      background: #fff;
+      border-radius: 24px;
+      padding: 56px 52px;
+      max-width: 580px;
+      width: 100%;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.28), 0 4px 16px rgba(0,0,0,0.14);
+      text-align: center;
+    }
+
+    .check-circle {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand-green) 0%, var(--green) 100%);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 28px;
+      box-shadow: 0 8px 32px rgba(74,138,20,0.35);
+    }
+    .check-circle svg { width: 40px; height: 40px; }
+
+    .eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--brand-green); margin-bottom: 12px;
+    }
+    .title {
+      font-family: var(--font-display);
+      font-size: clamp(24px, 4vw, 32px);
+      font-weight: 900; color: var(--dark);
+      letter-spacing: -0.03em; line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .body-text {
+      font-size: 16px; color: var(--muted);
+      line-height: 1.72; margin-bottom: 32px;
+    }
+
+    .steps {
+      display: flex; flex-direction: column; gap: 14px;
+      background: #f4f9f0; border-radius: 14px;
+      padding: 24px 28px; margin-bottom: 32px; text-align: left;
+    }
+    .step {
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--brand-green); color: #fff;
+      font-family: var(--font-display); font-size: 13px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-text { font-size: 14px; color: var(--text); line-height: 1.55; }
+    .step-text strong { color: var(--dark); font-weight: 700; }
+
+    .back-btn {
+      display: inline-block;
+      background: var(--accent); color: #fff;
+      font-family: var(--font); font-weight: 700; font-size: 13px;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 14px 32px; border-radius: 8px; text-decoration: none;
+      transition: background 0.18s ease, transform 0.12s ease;
+      box-shadow: 0 4px 16px rgba(232,56,10,0.35);
+    }
+    .back-btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark); color: rgba(255,255,255,0.5);
+      padding: 20px 48px; font-size: 12px; text-align: center; line-height: 1.7;
+    }
+    footer a { color: rgba(255,255,255,0.4); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .header-inner { padding: 0 20px; }
+      .card { padding: 36px 24px; border-radius: 16px; }
+      .steps { padding: 18px 18px; }
+      footer { padding: 16px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ META PIXEL ═══ -->
+<!-- TODO: Inserir o código do Meta Pixel aqui (evento PageView + Lead) -->
+<!-- Exemplo:
+<script>
+  !function(f,b,e,v,n,t,s){...}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', 'SEU_PIXEL_ID');
+  fbq('track', 'PageView');
+  fbq('track', 'Lead');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=SEU_PIXEL_ID&ev=Lead&noscript=1" /></noscript>
+-->
+
+<header class="site-header">
+  <div class="header-inner">
+    <img src="Sun%20To%20Sun%20Logo%20Branco.png" alt="Sun to Sun" class="logo-img" />
+  </div>
+</header>
+
+<main>
+  <div class="card">
+
+    <div class="check-circle">
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polyline points="8,20 16,29 32,12" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <div class="eyebrow">Pedido recebido com sucesso</div>
+    <h1 class="title">A sua equipa entra em<br>contacto em breve!</h1>
+    <p class="body-text">
+      Recebemos o seu pedido de proposta. Um especialista Sun to Sun irá analisar o perfil da sua habitação e entrar em contacto consigo nas próximas <strong>24 horas</strong> para apresentar a solução ideal.
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>Análise do seu perfil</strong> — O nosso especialista revê os seus dados e prepara uma proposta personalizada.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>Contacto em 24h</strong> — Receberá uma chamada ou e-mail com a proposta detalhada, sem compromisso.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>Instalação em 2 semanas</strong> — Se avançar, tratamos de tudo: projeto, licenças e instalação.</div>
+      </div>
+    </div>
+
+    <a href="/" class="back-btn">Voltar ao início →</a>
+
+  </div>
+</main>
+
+<footer>
+  <a href="#">Política de Privacidade</a> · <a href="#">Termos e Condições</a><br />
+  © 2026 SUN TO SUN, LDA. — Todos os direitos reservados.
+</footer>
+
+</body>
+</html>
