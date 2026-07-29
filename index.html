@@ -27,7 +27,7 @@
   src="https://www.facebook.com/tr?id=4667125866853309&ev=PageView&noscript=1"
   /></noscript>
   <!-- End Meta Pixel Code -->
-  <title>Sun to Sun — Energia Solar · Estudo Gratuito</title>
+  <title>Sun to Sun — Energia Solar · Estudo Gratuito (v2)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -91,9 +91,13 @@
 
     /* ── HEADER ── */
     .site-header {
-      background: var(--brand-green);
+      position: absolute;
+      top: 36px; /* abaixo do ticker sticky */
+      left: 0; right: 0;
+      background: transparent;
       border-bottom: none;
       height: 68px;
+      z-index: 50;
     }
     .header-inner {
       width: 100%; height: 100%;
@@ -800,19 +804,43 @@
       .trust-bar { justify-content: center; padding: 10px 24px; }
     }
 
-    /* ══ HERO SPLIT (v2) ══ */
+    /* ══ HERO SPLIT (v2 — foto real) ══ */
     .hero-split {
       position: relative;
-      height: calc(100vh - 104px);
-      min-height: 520px;
+      height: calc(100vh - 36px); /* só subtrai o ticker, header está em absolute */
+      min-height: 560px;
       overflow: hidden;
-      background: var(--brand-green);
+      background: #071a04 url('teste lp.jpg') center 38% / cover no-repeat;
     }
-    .hero-split::before { content: none; }
-    .hero-split::after { content: none; }
+    /* Camada 1 — gradiente direcional: muito escuro à esquerda (texto), abre para a direita (formulário branco) + vinheta no fundo */
+    .hero-split::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        linear-gradient(108deg,
+          rgba(3, 14, 2, 0.92) 0%,
+          rgba(3, 14, 2, 0.85) 30%,
+          rgba(3, 14, 2, 0.65) 52%,
+          rgba(3, 14, 2, 0.38) 70%,
+          rgba(3, 14, 2, 0.18) 100%
+        ),
+        linear-gradient(to bottom,
+          rgba(0, 0, 0, 0.08) 0%,
+          transparent 40%,
+          rgba(0, 0, 0, 0.52) 100%
+        );
+    }
+    /* Camada 2 — tint de marca em multiply para unificar a cor da foto com o verde Sun to Sun */
+    .hero-split::after {
+      content: '';
+      position: absolute; inset: 0; z-index: 0;
+      background: rgba(18, 58, 10, 0.28);
+      mix-blend-mode: multiply;
+    }
     .hero-split-inner {
       width: 100%; height: 100%;
       display: flex;
+      position: relative; z-index: 1;
     }
     .hero-split-left {
       flex: 1;
@@ -820,7 +848,7 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      padding: 52px 52px 40px 76px; flex: 1;
+      padding: 120px 52px 40px 76px; /* 52+68px header height */
       position: relative;
       z-index: 1;
     }
@@ -930,9 +958,8 @@
       background: transparent;
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 28px 76px 28px 48px;
       justify-content: flex-end;
+      padding: 96px 76px 28px 48px; /* top clearance for transparent header */
       position: relative;
       z-index: 1;
     }
@@ -1002,7 +1029,7 @@
     @media (max-width: 960px) {
       .hero-split { height: auto; min-height: auto; }
       .hero-split-inner { flex-direction: column; }
-      .hero-split-left { flex: none; width: 100%; padding: 40px 24px 32px; }
+      .hero-split-left { flex: none; width: 100%; padding: 108px 24px 32px; }
       .hero-split-right { flex: none; width: 100%; padding: 0 24px 48px; justify-content: center; }
       .hsplit-form { max-width: 100%; border-radius: 12px; }
     }
