@@ -1,64 +1,562 @@
-const GASTOS_VALIDOS = new Set([
-  'Menos de 80€/mês',
-  'Entre 80 e 120€/mês',
-  'Entre 120 e 170€/mês',
-  'Entre 170 e 220€/mês',
-  'Mais de 220€/mês',
-]);
+import {
+  createHash,
+  randomUUID
+} from 'node:crypto';
 
-const PRAZOS_VALIDOS = new Set([
-  'O mais breve possível',
-  'Dentro de 1 mês',
-  '1 a 2 meses',
-  '2 a 3 meses',
-  'Ainda estou a considerar',
-]);
 
-function limparTexto(valor, limite = 500) {
-  if (typeof valor !== 'string') return '';
-  return valor.trim().slice(0, limite);
+/*
+ * Aceita tanto os valores atuais do teu index.html
+ * como os códigos internos que poderás usar no futuro.
+ */
+const GASTO_OPTIONS = {
+  lt80: {
+    label: 'Menos de 80€/mês',
+    quality: 'unqualified'
+  },
+
+  'Menos de 80€/mês': {
+    label: 'Menos de 80€/mês',
+    quality: 'unqualified'
+  },
+
+  '80_120': {
+    label: 'Entre 80 e 120€/mês',
+    quality: 'qualified'
+  },
+
+  'Entre 80 e 120€/mês': {
+    label: 'Entre 80 e 120€/mês',
+    quality: 'qualified'
+  },
+
+  '120_170': {
+    label: 'Entre 120 e 170€/mês',
+    quality: 'qualified'
+  },
+
+  'Entre 120 e 170€/mês': {
+    label: 'Entre 120 e 170€/mês',
+    quality: 'qualified'
+  },
+
+  '170_220': {
+    label: 'Entre 170 e 220€/mês',
+    quality: 'qualified'
+  },
+
+  'Entre 170 e 220€/mês': {
+    label: 'Entre 170 e 220€/mês',
+    quality: 'qualified'
+  },
+
+  gt220: {
+    label: 'Mais de 220€/mês',
+    quality: 'qualified'
+  },
+
+  'Mais de 220€/mês': {
+    label: 'Mais de 220€/mês',
+    quality: 'qualified'
+  }
+};
+
+
+const PRAZO_OPTIONS = {
+  urgente: 'O mais breve possível',
+  'O mais breve possível': 'O mais breve possível',
+
+  '1_mes': 'Dentro de 1 mês',
+  'Dentro de 1 mês': 'Dentro de 1 mês',
+
+  '1_2_meses': '1 a 2 meses',
+  '1 a 2 meses': '1 a 2 meses',
+
+  '2_3_meses': '2 a 3 meses',
+  '2 a 3 meses': '2 a 3 meses',
+
+  considerar: 'Ainda estou a considerar',
+  'Ainda estou a considerar': 'Ainda estou a considerar'
+};
+
+
+/**
+ * Cria uma resposta JSON sem cache.
+ */
+function json(
+  data,
+  status = 200,
+  additionalHeaders = {}
+) {
+  return Response.json(data, {
+    status,
+
+    headers: {
+      'Cache-Control': 'no-store',
+      ...additionalHeaders
+    }
+  });
 }
 
-function normalizarTelefonePortugal(valor) {
-  let digitos = limparTexto(valor, 30).replace(/\D/g, '');
 
-  // Exemplos aceites:
-  // 912345678
-  // 351912345678
-  // +351912345678
-  // 00351912345678
-
-  if (digitos.startsWith('00351')) {
-    digitos = digitos.slice(5);
-  } else if (digitos.startsWith('351')) {
-    digitos = digitos.slice(3);
-  }
-
-  if (digitos.startsWith('0') && digitos.length === 10) {
-    digitos = digitos.slice(1);
-  }
-
-  if (!/^\d{9}$/.test(digitos)) {
-    return null;
-  }
-
-  return `+351${digitos}`;
+/**
+ * Limpa e limita texto recebido.
+ */
+function clean(value, maxLength = 1000) {
+  return String(value || '')
+    .trim()
+    .slice(0, maxLength);
 }
+
+
+/**
+ * Cria um hash SHA-256.
+ */
+function sha256(value) {
+  return createHash('sha256')
+    .update(value)
+    .digest('hex');
+}
+
+
+/**
+ * Normaliza o e-mail antes do hash.
+ */
+function normalizeEmail(email) {
+  return clean(email, 254).toLowerCase();
+}
+
+
+/**
+ * Normaliza um telemóvel português.
+ *
+ * Exemplos aceites:
+ * 912345678
+ * 351912345678
+ * +351912345678
+ * 00351912345678
+ */
+function normalizePortugalMobile(phone) {
+  var digits = String(phone || '')
+    .replace(/\D/g, '');
+
+  if (digits.startsWith('00351')) {
+    digits = digits.slice(5);
+  } else if (digits.startsWith('351')) {
+    digits = digits.slice(3);
+  } else {
+    digits = digits.replace(/^0+/, '');
+  }
+
+  /*
+   * Telemóvel português:
+   * começa por 9 e tem 9 dígitos.
+   */
+  if (!/^9\d{8}$/.test(digits)) {
+    return '';
+  }
+
+  return '+351' + digits;
+}
+
+
+/**
+ * Obtém o IP original do visitante.
+ */
+function getClientIp(request) {
+  var forwardedFor =
+    request.headers.get('x-vercel-forwarded-for') ||
+    request.headers.get('x-forwarded-for') ||
+    request.headers.get('x-real-ip') ||
+    '';
+
+  if (!forwardedFor) {
+    return '';
+  }
+
+  return forwardedFor
+    .split(',')[0]
+    .trim();
+}
+
+
+/**
+ * Obtém um cookie pelo nome.
+ */
+function getCookie(request, name) {
+  var cookieHeader =
+    request.headers.get('cookie') || '';
+
+  var prefix = name + '=';
+  var cookies = cookieHeader.split(';');
+
+  for (
+    var index = 0;
+    index < cookies.length;
+    index++
+  ) {
+    var cookie = cookies[index].trim();
+
+    if (!cookie.startsWith(prefix)) {
+      continue;
+    }
+
+    var value = cookie.slice(prefix.length);
+
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return value;
+    }
+  }
+
+  return '';
+}
+
+
+/**
+ * Impede que seja enviada para a Meta uma URL externa
+ * introduzida manualmente no pedido.
+ */
+function getSafePageUrl(
+  request,
+  suppliedPageUrl
+) {
+  var requestOrigin =
+    new URL(request.url).origin;
+
+  var candidates = [
+    suppliedPageUrl,
+    request.headers.get('referer') || ''
+  ];
+
+  for (
+    var index = 0;
+    index < candidates.length;
+    index++
+  ) {
+    var candidate =
+      clean(candidates[index], 2048);
+
+    if (!candidate) {
+      continue;
+    }
+
+    try {
+      var parsed = new URL(candidate);
+
+      if (parsed.origin === requestOrigin) {
+        return parsed.href;
+      }
+    } catch {
+      // Experimenta a opção seguinte.
+    }
+  }
+
+  return requestOrigin + '/';
+}
+
+
+/**
+ * Normaliza a versão da Meta Graph API.
+ */
+function normalizeApiVersion(value) {
+  var version =
+    clean(value, 20) || 'v25.0';
+
+  if (!version.startsWith('v')) {
+    version = 'v' + version;
+  }
+
+  if (!/^v\d+\.\d+$/.test(version)) {
+    return 'v25.0';
+  }
+
+  return version;
+}
+
+
+/**
+ * Valida o ID de evento recebido do browser.
+ * Cria um UUID quando não é enviado um ID válido.
+ */
+function getEventId(value) {
+  var supplied = clean(value, 100);
+
+  if (
+    /^[A-Za-z0-9._:-]{1,100}$/.test(supplied)
+  ) {
+    return supplied;
+  }
+
+  return randomUUID();
+}
+
+
+/**
+ * Faz um fetch com tempo limite.
+ */
+async function fetchWithTimeout(
+  url,
+  options,
+  timeoutMilliseconds = 10000
+) {
+  var controller = new AbortController();
+
+  var timeout = setTimeout(
+    function () {
+      controller.abort();
+    },
+    timeoutMilliseconds
+  );
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+
+/**
+ * Envia um evento Lead para a Meta
+ * através da Conversions API.
+ */
+async function sendMetaLead({
+  request,
+  eventId,
+  email,
+  phone,
+  pageUrl,
+  fbp,
+  fbc
+}) {
+  var pixelId = clean(
+    process.env.META_PIXEL_ID,
+    30
+  );
+
+  var accessToken = clean(
+    process.env.META_CAPI_ACCESS_TOKEN,
+    1000
+  );
+
+  var apiVersion = normalizeApiVersion(
+    process.env.META_GRAPH_API_VERSION
+  );
+
+  var testEventCode = clean(
+    process.env.META_TEST_EVENT_CODE,
+    100
+  );
+
+  if (!pixelId || !accessToken) {
+    throw new Error(
+      'META_PIXEL_ID ou META_CAPI_ACCESS_TOKEN em falta.'
+    );
+  }
+
+  if (!/^\d+$/.test(pixelId)) {
+    throw new Error(
+      'META_PIXEL_ID inválido.'
+    );
+  }
+
+  var normalizedEmail =
+    normalizeEmail(email);
+
+  var normalizedPhone =
+    String(phone || '')
+      .replace(/\D/g, '');
+
+  var clientIp =
+    getClientIp(request);
+
+  var userAgent =
+    request.headers.get('user-agent') || '';
+
+  if (
+    !normalizedEmail ||
+    !normalizedPhone
+  ) {
+    throw new Error(
+      'E-mail ou telefone inválido para a Meta.'
+    );
+  }
+
+  if (!userAgent) {
+    throw new Error(
+      'Client User Agent em falta.'
+    );
+  }
+
+  /*
+   * O e-mail e o telefone levam hash.
+   * IP, user agent, fbp e fbc não levam hash.
+   */
+  var userData = {
+    em: [
+      sha256(normalizedEmail)
+    ],
+
+    ph: [
+      sha256(normalizedPhone)
+    ],
+
+    client_user_agent: userAgent
+  };
+
+  if (clientIp) {
+    userData.client_ip_address =
+      clientIp;
+  }
+
+  if (fbp) {
+    userData.fbp = fbp;
+  }
+
+  if (fbc) {
+    userData.fbc = fbc;
+  }
+
+  var metaEvent = {
+    event_name: 'Lead',
+
+    event_time:
+      Math.floor(Date.now() / 1000),
+
+    /*
+     * Deve coincidir com o eventID
+     * usado pelo Meta Pixel no browser.
+     */
+    event_id: eventId,
+
+    action_source: 'website',
+
+    event_source_url: pageUrl,
+
+    user_data: userData,
+
+    custom_data: {
+      content_name:
+        'Lead Qualificada Solar',
+
+      lead_type:
+        'solar_residencial',
+
+      lead_quality:
+        'qualified'
+    }
+  };
+
+  var metaPayload = {
+    data: [
+      metaEvent
+    ]
+  };
+
+  /*
+   * Só será incluído se a variável existir.
+   * Deve ser removido após os testes.
+   */
+  if (testEventCode) {
+    metaPayload.test_event_code =
+      testEventCode;
+  }
+
+  var metaUrl =
+    'https://graph.facebook.com/' +
+    apiVersion +
+    '/' +
+    encodeURIComponent(pixelId) +
+    '/events?access_token=' +
+    encodeURIComponent(accessToken);
+
+  var metaResponse =
+    await fetchWithTimeout(
+      metaUrl,
+      {
+        method: 'POST',
+
+        headers: {
+          'Content-Type':
+            'application/json'
+        },
+
+        body:
+          JSON.stringify(metaPayload)
+      },
+      10000
+    );
+
+  var metaResponseText =
+    await metaResponse.text();
+
+  var metaResponseData;
+
+  try {
+    metaResponseData =
+      JSON.parse(metaResponseText);
+  } catch {
+    metaResponseData = {
+      raw_response:
+        metaResponseText
+    };
+  }
+
+  if (!metaResponse.ok) {
+    throw new Error(
+      'Erro da Meta: ' +
+      JSON.stringify(metaResponseData)
+    );
+  }
+
+  return metaResponseData;
+}
+
 
 export default {
   async fetch(request) {
+    /*
+     * Só aceita pedidos POST.
+     */
     if (request.method !== 'POST') {
-      return Response.json(
+      return json(
         {
           ok: false,
-          error: 'Método não permitido.',
+          error:
+            'Método não permitido.'
         },
+        405,
         {
-          status: 405,
-          headers: {
-            Allow: 'POST',
-          },
+          Allow: 'POST'
         }
+      );
+    }
+
+    /*
+     * Proteção básica contra pedidos
+     * originados noutro website.
+     */
+    var requestOrigin =
+      new URL(request.url).origin;
+
+    var origin =
+      request.headers.get('origin') || '';
+
+    if (
+      origin &&
+      origin !== requestOrigin
+    ) {
+      return json(
+        {
+          ok: false,
+          error:
+            'Origem não autorizada.'
+        },
+        403
       );
     }
 
@@ -67,199 +565,439 @@ export default {
     try {
       body = await request.json();
     } catch {
-      return Response.json(
+      return json(
         {
           ok: false,
-          error: 'Pedido inválido.',
+          error:
+            'JSON inválido.'
         },
-        {
-          status: 400,
-        }
+        400
       );
     }
 
-    const nome = limparTexto(body.nome, 150);
-    const tel = limparTexto(body.tel, 30);
-    const email = limparTexto(body.email, 254).toLowerCase();
-    const gasto = limparTexto(body.gasto, 100);
-    const prazo = limparTexto(body.prazo, 100);
-    const morada = limparTexto(body.morada, 300);
-    const website = limparTexto(body.website, 300);
+    /*
+     * Campos principais.
+     */
+    var nome =
+      clean(body.nome, 150);
 
-    // Honeypot preenchido: provavelmente é um bot.
-    // Não envia para o GHL e não envia para uma página de conversão.
+    var tel =
+      clean(body.tel, 30);
+
+    var email =
+      normalizeEmail(body.email);
+
+    var gasto =
+      clean(body.gasto, 100);
+
+    var prazo =
+      clean(body.prazo, 100);
+
+    var morada =
+      clean(body.morada, 300);
+
+    var website =
+      clean(body.website, 200);
+
+    /*
+     * Informações Meta e atribuição.
+     */
+    var eventId =
+      getEventId(body.event_id);
+
+    var pageUrl =
+      getSafePageUrl(
+        request,
+        body.page_url
+      );
+
+    var referrer =
+      clean(body.referrer, 2048);
+
+    var utmSource =
+      clean(body.utm_source, 300);
+
+    var utmMedium =
+      clean(body.utm_medium, 300);
+
+    var utmCampaign =
+      clean(body.utm_campaign, 300);
+
+    var utmContent =
+      clean(body.utm_content, 300);
+
+    var utmTerm =
+      clean(body.utm_term, 300);
+
+    var fbclid =
+      clean(body.fbclid, 500);
+
+    /*
+     * Tenta primeiro os valores enviados
+     * pelo browser e depois os cookies.
+     */
+    var fbp =
+      clean(body.fbp, 255) ||
+      clean(
+        getCookie(request, '_fbp'),
+        255
+      );
+
+    var fbc =
+      clean(body.fbc, 500) ||
+      clean(
+        getCookie(request, '_fbc'),
+        500
+      );
+
+    /*
+     * Se existe fbclid mas não existe _fbc,
+     * cria um valor fbc compatível.
+     */
+    if (!fbc && fbclid) {
+      fbc =
+        'fb.1.' +
+        Date.now() +
+        '.' +
+        fbclid;
+    }
+
+    /*
+     * Honeypot preenchido:
+     * provavelmente é um bot.
+     *
+     * Não envia para o GHL nem para a Meta.
+     */
     if (website) {
-      return Response.json({
+      return json({
         ok: true,
-        redirect_url: '/',
+        lead_quality:
+          'unqualified',
+        redirect_url:
+          '/sucesso-2.html',
+        event_id: null,
+        meta_server_sent: false
       });
     }
 
-    if (!nome || !tel || !email || !gasto || !prazo || !morada) {
-      return Response.json(
+    /*
+     * Todos os campos são obrigatórios.
+     */
+    if (
+      !nome ||
+      !tel ||
+      !email ||
+      !gasto ||
+      !prazo ||
+      !morada
+    ) {
+      return json(
         {
           ok: false,
-          error: 'Preenche todos os campos obrigatórios.',
+          error:
+            'Preenche todos os campos obrigatórios.'
         },
-        {
-          status: 422,
-        }
+        422
       );
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return Response.json(
+    /*
+     * Validação de e-mail.
+     */
+    if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+        email
+      )
+    ) {
+      return json(
         {
           ok: false,
-          error: 'Introduz um endereço de e-mail válido.',
+          error:
+            'E-mail inválido.'
         },
-        {
-          status: 422,
-        }
+        422
       );
     }
 
-    const phone = normalizarTelefonePortugal(tel);
+    /*
+     * Normalização e validação
+     * do telemóvel português.
+     */
+    var phone =
+      normalizePortugalMobile(tel);
 
     if (!phone) {
-      return Response.json(
+      return json(
         {
           ok: false,
-          error: 'Introduz um número de telefone português válido com 9 dígitos.',
+          error:
+            'Telemóvel inválido. Introduz um número português com 9 dígitos.'
         },
-        {
-          status: 422,
-        }
+        422
       );
     }
 
-    if (!GASTOS_VALIDOS.has(gasto)) {
-      return Response.json(
+    /*
+     * Validação do gasto mensal.
+     */
+    var gastoOption =
+      GASTO_OPTIONS[gasto];
+
+    if (!gastoOption) {
+      return json(
         {
           ok: false,
-          error: 'Seleciona uma opção válida para o gasto mensal.',
+          error:
+            'Opção de gasto mensal inválida.'
         },
-        {
-          status: 422,
-        }
+        422
       );
     }
 
-    if (!PRAZOS_VALIDOS.has(prazo)) {
-      return Response.json(
+    /*
+     * Validação do prazo.
+     */
+    var prazoLabel =
+      PRAZO_OPTIONS[prazo];
+
+    if (!prazoLabel) {
+      return json(
         {
           ok: false,
-          error: 'Seleciona uma opção válida para o prazo de instalação.',
+          error:
+            'Opção de prazo inválida.'
         },
-        {
-          status: 422,
-        }
+        422
       );
     }
 
-    const leadQuality =
-      gasto === 'Menos de 80€/mês'
-        ? 'unqualified'
-        : 'qualified';
+    /*
+     * Apenas menos de 80€/mês
+     * é uma lead não qualificada.
+     */
+    var leadQuality =
+      gastoOption.quality;
 
-    const ghlPayload = {
+    /*
+     * Dados enviados para o webhook
+     * do GoHighLevel.
+     */
+    var ghlPayload = {
       full_name: nome,
-      phone,
-      email,
+
+      phone: phone,
+
+      email: email,
+
       address: morada,
 
-      // Estes valores chegam exatamente como aparecem no formulário.
-      gasto_mensal: gasto,
-      prazo_instalacao: prazo,
+      gasto_mensal:
+        gastoOption.label,
 
-      lead_quality: leadQuality,
-      source: 'Landing Page Sun to Sun',
+      prazo_instalacao:
+        prazoLabel,
 
-      page_url: limparTexto(body.page_url, 1000),
-      referrer: limparTexto(body.referrer, 1000),
-      utm_source: limparTexto(body.utm_source, 300),
-      utm_medium: limparTexto(body.utm_medium, 300),
-      utm_campaign: limparTexto(body.utm_campaign, 300),
-      utm_content: limparTexto(body.utm_content, 300),
-      utm_term: limparTexto(body.utm_term, 300),
-      fbclid: limparTexto(body.fbclid, 500),
+      lead_quality:
+        leadQuality,
+
+      source:
+        'Landing Page Sun to Sun',
+
+      /*
+       * Útil para confirmar a deduplicação.
+       */
+      event_id:
+        eventId,
+
+      page_url:
+        pageUrl,
+
+      referrer:
+        referrer,
+
+      utm_source:
+        utmSource,
+
+      utm_medium:
+        utmMedium,
+
+      utm_campaign:
+        utmCampaign,
+
+      utm_content:
+        utmContent,
+
+      utm_term:
+        utmTerm,
+
+      fbclid:
+        fbclid
     };
 
-    const webhookUrl = process.env.GHL_WEBHOOK_URL;
+    var webhookUrl = clean(
+      process.env.GHL_WEBHOOK_URL,
+      2048
+    );
 
     if (!webhookUrl) {
-      console.error('GHL_WEBHOOK_URL não está configurado.');
+      console.error(
+        'GHL_WEBHOOK_URL não está configurado.'
+      );
 
-      return Response.json(
+      return json(
         {
           ok: false,
-          error: 'Configuração interna em falta.',
+          error:
+            'GHL_WEBHOOK_URL não está configurado.'
         },
-        {
-          status: 500,
-        }
+        500
       );
     }
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-
+    /*
+     * Primeiro envia a lead
+     * para o GoHighLevel.
+     */
     let ghlResponse;
 
     try {
-      ghlResponse = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(ghlPayload),
-        signal: controller.signal,
-      });
-    } catch (error) {
-      console.error('Erro ao contactar o GHL:', error);
+      ghlResponse =
+        await fetchWithTimeout(
+          webhookUrl,
+          {
+            method: 'POST',
 
-      return Response.json(
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+
+            body:
+              JSON.stringify(
+                ghlPayload
+              )
+          },
+          10000
+        );
+    } catch (error) {
+      console.error(
+        'Erro de ligação ao GHL:',
+        error
+      );
+
+      return json(
         {
           ok: false,
-          error: 'Não foi possível registar o pedido. Tenta novamente.',
+          error:
+            'Erro ao contactar o servidor. Tenta novamente.'
         },
-        {
-          status: 502,
-        }
+        502
       );
-    } finally {
-      clearTimeout(timeout);
     }
 
     if (!ghlResponse.ok) {
-      const respostaGhl = await ghlResponse.text().catch(() => '');
+      var ghlErrorText = '';
+
+      try {
+        ghlErrorText =
+          await ghlResponse.text();
+      } catch {
+        ghlErrorText = '';
+      }
 
       console.error(
-        'O webhook do GHL respondeu com erro:',
+        'Erro devolvido pelo GHL:',
         ghlResponse.status,
-        respostaGhl
+        ghlErrorText
       );
 
-      return Response.json(
+      return json(
         {
           ok: false,
-          error: 'O pedido não foi registado. Tenta novamente.',
+          error:
+            'Erro ao registar o pedido. Tenta novamente.'
         },
-        {
-          status: 502,
-        }
+        502
       );
     }
 
-    const redirectUrl =
+    var metaServerSent = false;
+
+    console.log('META DEBUG:', {
+      leadQuality: leadQuality,
+      hasPixelId: Boolean(process.env.META_PIXEL_ID),
+      hasAccessToken: Boolean(process.env.META_CAPI_ACCESS_TOKEN),
+      apiVersion: process.env.META_GRAPH_API_VERSION || 'v26.0',
+      testEventCode: process.env.META_TEST_EVENT_CODE || ''
+    });
+
+    /*
+     * Só envia Lead para a Meta
+     * quando a lead é qualificada.
+     */
+    if (
+      leadQuality === 'qualified'
+    ) {
+      try {
+        var metaResult =
+          await sendMetaLead({
+            request: request,
+            eventId: eventId,
+            email: email,
+            phone: phone,
+            pageUrl: pageUrl,
+            fbp: fbp,
+            fbc: fbc
+          });
+
+        metaServerSent = true;
+
+        console.log(
+          'Evento Meta enviado com sucesso:',
+          metaResult
+        );
+      } catch (error) {
+        /*
+         * A lead já entrou no GHL.
+         * Por isso, uma falha na Meta
+         * não deve bloquear o utilizador.
+         */
+        console.error(
+          'Erro na Meta Conversions API:',
+          error
+        );
+      }
+    }
+
+    /*
+     * Leads qualificadas vão para sucesso.html.
+     * Leads não qualificadas vão para sucesso-2.html.
+     */
+    var redirectUrl =
       leadQuality === 'qualified'
         ? '/sucesso.html'
         : '/sucesso-2.html';
 
-    return Response.json({
+    return json({
       ok: true,
-      lead_quality: leadQuality,
-      redirect_url: redirectUrl,
+
+      lead_quality:
+        leadQuality,
+
+      redirect_url:
+        redirectUrl,
+
+      /*
+       * O index.html deve guardar este valor
+       * no sessionStorage antes do redirect.
+       */
+      event_id:
+        leadQuality === 'qualified'
+          ? eventId
+          : null,
+
+      meta_server_sent:
+        metaServerSent
     });
-  },
+  }
 };
