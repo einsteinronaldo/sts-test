@@ -786,6 +786,9 @@
       .trust-label { display: none; }
       .trust-rating + span { display: none; }
       .trust-bar { justify-content: center; padding: 10px 24px; }
+      /* Prevent CTA buttons from wrapping */
+      .hero-cta { font-size: 12px; padding: 16px 20px; white-space: nowrap; }
+      .plan-cta { font-size: 11px; white-space: nowrap; }
     }
 
     /* ══ HERO SPLIT (v2 — foto real) ══ */
@@ -1011,7 +1014,7 @@
     .form-tel-sm .form-input-sm { border-radius: 0 7px 7px 0; }
 
     @media (max-width: 960px) {
-      .hero-split { height: auto; min-height: auto; }
+      .hero-split { height: auto; min-height: auto; background-position: center 65%; }
       .hero-split-inner { flex-direction: column; }
       .hero-split-left { flex: none; width: 100%; padding: 108px 24px 32px; }
       .hero-split-right { flex: none; width: 100%; padding: 0 24px 48px; justify-content: center; }
@@ -2548,7 +2551,7 @@
     Financiamento sujeito a aprovação. Valores estimados com base em projetos reais.<br />
     <a href="#">Política de Privacidade</a> · <a href="#">Termos e Condições</a> · <a href="#">DGEG</a>
   </div>
-  <div style="margin-top:8px;">© 2026 SUN TO SUN, LDA. — Todos os direitos reservados.</div>
+  <div style="margin-top:8px;">© 2026 SUN TO SUN — Todos os direitos reservados.</div>
 </footer>
 
 <!-- ═══ STICKY BOTTOM BAR ═══ -->
