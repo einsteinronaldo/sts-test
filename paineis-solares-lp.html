@@ -763,6 +763,22 @@
       .popup-card { padding: 40px 24px 32px; border-radius: 16px; }
     }
 
+    /* ── CLOUDFLARE TURNSTILE ── */
+    #hero-turnstile,
+    #popup-turnstile {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      overflow: hidden;
+    }
+    /* Reduz padding lateral em mobile para o widget de 300 px não transbordar */
+    @media (max-width: 960px) {
+      .hsplit-form { padding: 28px 20px; }
+    }
+    @media (max-width: 520px) {
+      .popup-card { padding: 40px 20px 32px; }
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 960px) {
       .hero-content { grid-template-columns: 1fr; padding: 32px 24px 40px; }
@@ -1600,7 +1616,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <div id="heroForm-error" role="alert" aria-live="polite" style="display:none;background:#fff0ee;border:1px solid rgba(232,56,10,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent);line-height:1.5;"></div>
 
-      <div id="hero-turnstile" style="margin-bottom:8px;"></div>
+      <div id="hero-turnstile"></div>
 
       <button type="submit" class="form-submit" id="heroForm-btn">PROPOSTA GRATUITA</button>
       <div class="form-note">Grátis · Sem compromisso · Resposta em 24 horas</div>
@@ -2671,7 +2687,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <div id="popupForm-error" role="alert" aria-live="polite" style="display:none;background:#fff0ee;border:1px solid rgba(232,56,10,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent);line-height:1.5;"></div>
 
-      <div id="popup-turnstile" style="margin-bottom:8px;"></div>
+      <div id="popup-turnstile"></div>
 
       <button type="submit" class="popup-submit" id="popupForm-btn">RECEBER PROPOSTA GRATUITA →</button>
       <div class="popup-note">Grátis · Sem compromisso · Resposta em 24 horas</div>
@@ -3079,8 +3095,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   /*
     POPUP
   */
-  var POPUP_STORAGE_KEY =
-    'popup_dismissed';
+  var POPUP_STORAGE_KEY = 'popup_dismissed';
+  var popupTimeoutId = null;
 
   var popupOverlay =
     document.getElementById('popupOverlay');
@@ -3105,10 +3121,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     popupError
   ) {
     function openPopup() {
+      console.log('openPopup executado:', performance.now());
+      console.log(
+        'popup_dismissed:',
+        sessionStorage.getItem('popup_dismissed')
+      );
+
       if (storageGet(POPUP_STORAGE_KEY)) {
         return;
       }
 
+      // Abrir overlay imediatamente, sem esperar pelo Turnstile.
       popupOverlay.classList.add('is-open');
 
       popupOverlay.setAttribute(
@@ -3118,8 +3141,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       document.body.style.overflow = 'hidden';
 
-      // Renderizar widget Turnstile no popup (lazy,
-      // só quando o popup abre pela primeira vez).
+      // Tentar renderizar o widget Turnstile do popup (lazy).
+      // O popup já está visível; o Turnstile é opcional neste momento.
       if (window.turnstile && popupTurnstileId === null) {
         popupTurnstileId = window.turnstile.render(
           '#popup-turnstile',
@@ -3128,12 +3151,38 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             theme: 'auto'
           }
         );
+      } else if (popupTurnstileId === null) {
+        // Turnstile ainda não carregou: tentar até 3× com 500 ms de intervalo.
+        var tsAttempts = 0;
+        var tryRenderPopup = function () {
+          if (popupTurnstileId !== null || tsAttempts >= 3) {
+            return;
+          }
+          tsAttempts++;
+          if (window.turnstile) {
+            popupTurnstileId = window.turnstile.render(
+              '#popup-turnstile',
+              {
+                sitekey: TURNSTILE_SITE_KEY,
+                theme: 'auto'
+              }
+            );
+          } else {
+            setTimeout(tryRenderPopup, 500);
+          }
+        };
+        setTimeout(tryRenderPopup, 500);
       }
 
       popupClose.focus();
     }
 
     function closePopup() {
+      if (popupTimeoutId !== null) {
+        clearTimeout(popupTimeoutId);
+        popupTimeoutId = null;
+      }
+
       popupOverlay.classList.remove('is-open');
 
       popupOverlay.setAttribute(
@@ -3146,8 +3195,29 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       storageSet(POPUP_STORAGE_KEY, '1');
     }
 
+    function schedulePopup() {
+      if (popupTimeoutId !== null) {
+        return;
+      }
+
+      console.log('Popup agendado:', performance.now());
+
+      popupTimeoutId = setTimeout(function () {
+        popupTimeoutId = null;
+        openPopup();
+      }, 5000);
+    }
+
     if (!storageGet(POPUP_STORAGE_KEY)) {
-      setTimeout(openPopup, 45000);
+      if (document.readyState === 'loading') {
+        document.addEventListener(
+          'DOMContentLoaded',
+          schedulePopup,
+          { once: true }
+        );
+      } else {
+        schedulePopup();
+      }
     }
 
     popupClose.addEventListener(
