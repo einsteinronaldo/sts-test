@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, follow" />
   <meta name="google-site-verification" content="bbLhswvD5B0h-OW9ks1s3qTXGPasmVhju-azzA5uRkQ" />
+  <script>if(window.location.hostname.endsWith('.vercel.app')){var _m=document.createElement('meta');_m.name='robots';_m.content='noindex';document.head.appendChild(_m);}</script>
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -36,6 +38,7 @@
   <meta name="description" content="Somos especializados em conectar clientes a empresas líderes na instalação e manutenção de painéis solares eficazes que reduzem a sua despesa energética." />
   <link rel="icon" type="image/png" href="Sun%20To%20Sun%20Favicon.png" />
   <link rel="shortcut icon" href="Sun%20To%20Sun%20Favicon.png" />
+  <link rel="canonical" href="https://sun-to-sun.com/" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -82,9 +85,13 @@
 
     /* ── HEADER ── */
     .site-header {
-      background: var(--brand-green);
+      position: absolute;
+      top: 36px; /* abaixo do ticker sticky */
+      left: 0; right: 0;
+      background: transparent;
       border-bottom: none;
       height: 68px;
+      z-index: 50;
     }
     .header-inner {
       width: 100%; height: 100%;
@@ -463,12 +470,12 @@
       pointer-events: none;
     }
     .problem-title {
-      font-family: var(--font-display);
-      font-size: clamp(26px, 3vw, 40px);
+      font-size: clamp(22px, 3vw, 34px);
       font-weight: 900;
       color: #fff;
       letter-spacing: -0.03em;
-      line-height: 1.2;
+      line-height: 1.15;
+      text-transform: uppercase;
     }
     .problem-cards {
       display: grid;
@@ -729,6 +736,7 @@
       font-size: clamp(20px, 3.5vw, 26px);
       font-weight: 900; color: var(--dark);
       letter-spacing: -0.03em; line-height: 1.2;
+      text-transform: uppercase;
       margin-bottom: 8px;
     }
     .popup-sub { font-size: 14px; color: var(--muted); line-height: 1.65; margin-bottom: 24px; }
@@ -789,21 +797,48 @@
       .trust-label { display: none; }
       .trust-rating + span { display: none; }
       .trust-bar { justify-content: center; padding: 10px 24px; }
+      /* Prevent CTA buttons from wrapping */
+      .hero-cta { font-size: 12px; padding: 16px 20px; white-space: nowrap; }
+      .plan-cta { font-size: 11px; white-space: nowrap; }
     }
 
-    /* ══ HERO SPLIT (v2) ══ */
+    /* ══ HERO SPLIT (v2 — foto real) ══ */
     .hero-split {
       position: relative;
-      height: calc(100vh - 104px);
-      min-height: 520px;
+      height: calc(100vh - 36px); /* só subtrai o ticker, header está em absolute */
+      min-height: 560px;
       overflow: hidden;
-      background: var(--brand-green);
+      background: #071a04 url('teste lp.jpg') center 38% / cover no-repeat;
     }
-    .hero-split::before { content: none; }
-    .hero-split::after { content: none; }
+    /* Camada 1 — gradiente direcional: muito escuro à esquerda (texto), abre para a direita (formulário branco) + vinheta no fundo */
+    .hero-split::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        linear-gradient(108deg,
+          rgba(3, 14, 2, 0.92) 0%,
+          rgba(3, 14, 2, 0.85) 30%,
+          rgba(3, 14, 2, 0.65) 52%,
+          rgba(3, 14, 2, 0.38) 70%,
+          rgba(3, 14, 2, 0.18) 100%
+        ),
+        linear-gradient(to bottom,
+          rgba(0, 0, 0, 0.08) 0%,
+          transparent 40%,
+          rgba(0, 0, 0, 0.52) 100%
+        );
+    }
+    /* Camada 2 — tint de marca em multiply para unificar a cor da foto com o verde Sun to Sun */
+    .hero-split::after {
+      content: '';
+      position: absolute; inset: 0; z-index: 0;
+      background: rgba(18, 58, 10, 0.28);
+      mix-blend-mode: multiply;
+    }
     .hero-split-inner {
       width: 100%; height: 100%;
       display: flex;
+      position: relative; z-index: 1;
     }
     .hero-split-left {
       flex: 1;
@@ -811,7 +846,7 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      padding: 52px 52px 40px 76px; flex: 1;
+      padding: 120px 52px 40px 76px; /* 52+68px header height */
       position: relative;
       z-index: 1;
     }
@@ -921,9 +956,8 @@
       background: transparent;
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 28px 76px 28px 48px;
       justify-content: flex-end;
+      padding: 96px 76px 28px 48px; /* top clearance for transparent header */
       position: relative;
       z-index: 1;
     }
@@ -991,9 +1025,9 @@
     .form-tel-sm .form-input-sm { border-radius: 0 7px 7px 0; }
 
     @media (max-width: 960px) {
-      .hero-split { height: auto; min-height: auto; }
+      .hero-split { height: auto; min-height: auto; background-position: center 65%; }
       .hero-split-inner { flex-direction: column; }
-      .hero-split-left { flex: none; width: 100%; padding: 40px 24px 32px; }
+      .hero-split-left { flex: none; width: 100%; padding: 108px 24px 32px; }
       .hero-split-right { flex: none; width: 100%; padding: 0 24px 48px; justify-content: center; }
       .hsplit-form { max-width: 100%; border-radius: 12px; }
     }
@@ -1538,15 +1572,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </select>
       </div>
 
-      <div class="hsplit-fields">
-        <input class="form-input-sm" type="text" id="nome" name="nome" placeholder="Nome completo" required autocomplete="name" maxlength="150" />
-        <div class="form-tel-sm">
-          <div class="form-tel-pre-sm">🇵🇹 +351</div>
-          <input class="form-input-sm" type="tel" id="tel" name="tel" placeholder="Telemóvel" required autocomplete="tel" inputmode="tel" maxlength="20" />
-        </div>
-        <input class="form-input-sm" type="email" id="email" name="email" placeholder="E-mail" required autocomplete="email" maxlength="254" />
-      </div>
-
       <div class="hform-field-group">
         <label class="hsplit-qlabel" for="prazo">Prazo para instalação</label>
         <select class="form-select-sm" id="prazo" name="prazo" required>
@@ -1561,6 +1586,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <div class="hsplit-fields">
         <input class="form-input-sm" type="text" id="morada" name="morada" placeholder="Morada, localidade ou código postal" required autocomplete="street-address" maxlength="300" />
+      </div>
+
+      <div class="hsplit-fields">
+        <input class="form-input-sm" type="text" id="nome" name="nome" placeholder="Nome completo" required autocomplete="name" maxlength="150" />
+        <div class="form-tel-sm">
+          <div class="form-tel-pre-sm">🇵🇹 +351</div>
+          <input class="form-input-sm" type="tel" id="tel" name="tel" placeholder="Telemóvel" required autocomplete="tel" inputmode="tel" maxlength="20" />
+        </div>
+        <input class="form-input-sm" type="email" id="email" name="email" placeholder="E-mail" required autocomplete="email" maxlength="254" />
       </div>
 
       <div id="heroForm-error" role="alert" aria-live="polite" style="display:none;background:#fff0ee;border:1px solid rgba(232,56,10,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent);line-height:1.5;"></div>
@@ -1593,7 +1627,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <section class="problem-section">
   <div class="container" style="position:relative;z-index:1;">
     <div style="max-width:600px;">
-      <div class="section-eyebrow" style="color:rgba(232,56,10,0.85);">Reconhece isto?</div>
+      <div class="section-eyebrow">Reconhece isto?</div>
       <div class="problem-title">Se está aqui, provavelmente<br>já sentiu isto:</div>
     </div>
     <div class="problem-cards">
@@ -2533,7 +2567,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     Financiamento sujeito a aprovação. Valores estimados com base em projetos reais.<br />
     <a href="#">Política de Privacidade</a> · <a href="#">Termos e Condições</a> · <a href="#">DGEG</a>
   </div>
-  <div style="margin-top:8px;">© 2026 SUN TO SUN, LDA. — Todos os direitos reservados.</div>
+  <div style="margin-top:8px;">© 2026 SUN TO SUN — Todos os direitos reservados.</div>
 </footer>
 
 <!-- ═══ STICKY BOTTOM BAR ═══ -->
@@ -2609,15 +2643,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </select>
       </div>
 
-      <input class="form-input-sm" type="text" id="popup-nome" name="nome" placeholder="Nome completo" required autocomplete="name" maxlength="150" />
-
-      <div class="form-tel-sm">
-        <div class="form-tel-pre-sm">🇵🇹 +351</div>
-        <input class="form-input-sm" type="tel" id="popup-tel" name="tel" placeholder="Telemóvel" required autocomplete="tel" inputmode="tel" maxlength="20" />
-      </div>
-
-      <input class="form-input-sm" type="email" id="popup-email" name="email" placeholder="E-mail" required autocomplete="email" maxlength="254" />
-
       <div>
         <label class="popup-field-label" for="popup-prazo">Prazo para instalação</label>
         <select class="form-select-sm" id="popup-prazo" name="prazo" required>
@@ -2632,6 +2657,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <input class="form-input-sm" type="text" id="popup-morada" name="morada" placeholder="Morada, localidade ou código postal" required autocomplete="street-address" maxlength="300" />
 
+      <input class="form-input-sm" type="text" id="popup-nome" name="nome" placeholder="Nome completo" required autocomplete="name" maxlength="150" />
+
+      <div class="form-tel-sm">
+        <div class="form-tel-pre-sm">🇵🇹 +351</div>
+        <input class="form-input-sm" type="tel" id="popup-tel" name="tel" placeholder="Telemóvel" required autocomplete="tel" inputmode="tel" maxlength="20" />
+      </div>
+
+      <input class="form-input-sm" type="email" id="popup-email" name="email" placeholder="E-mail" required autocomplete="email" maxlength="254" />
+
       <div id="popupForm-error" role="alert" aria-live="polite" style="display:none;background:#fff0ee;border:1px solid rgba(232,56,10,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent);line-height:1.5;"></div>
 
       <button type="submit" class="popup-submit" id="popupForm-btn">RECEBER PROPOSTA GRATUITA →</button>
@@ -2644,219 +2678,483 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 (function () {
   'use strict';
 
-  var form = document.getElementById('orcamento');
-  var btn = document.getElementById('heroForm-btn');
-  var errorBox = document.getElementById('heroForm-error');
+  var submissionInProgress = false;
 
-  if (!form || !btn || !errorBox) {
-    console.error('Não foi possível encontrar o formulário.');
-    return;
+  var LEAD_SOURCE = 'meta_landing_page';
+  var PAGE_PATH = '/paineis-solares-lp';
+
+  function getCookie(name) {
+    var prefix = name + '=';
+    var cookies = document.cookie
+      ? document.cookie.split(';')
+      : [];
+
+    for (var i = 0; i < cookies.length; i++) {
+      var cookie = cookies[i].trim();
+
+      if (cookie.indexOf(prefix) === 0) {
+        var value = cookie.substring(prefix.length);
+
+        try {
+          return decodeURIComponent(value);
+        } catch (error) {
+          return value;
+        }
+      }
+    }
+
+    return '';
   }
 
-  function mostrarErro(mensagem) {
-    errorBox.textContent = mensagem;
-    errorBox.style.display = 'block';
-    errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  function createEventId() {
+    if (
+      window.crypto &&
+      typeof window.crypto.randomUUID === 'function'
+    ) {
+      return window.crypto.randomUUID();
+    }
+
+    return (
+      'lead_' +
+      Date.now() +
+      '_' +
+      Math.random().toString(36).slice(2, 15)
+    );
   }
 
-  function esconderErro() {
-    errorBox.textContent = '';
-    errorBox.style.display = 'none';
+  function storageGet(key) {
+    try {
+      return sessionStorage.getItem(key) || '';
+    } catch (error) {
+      return '';
+    }
   }
 
-  function bloquearBotao() {
-    btn.disabled = true;
-    btn.textContent = 'A ENVIAR…';
+  function storageSet(key, value) {
+    try {
+      sessionStorage.setItem(key, value);
+    } catch (error) {
+      console.error(
+        'Não foi possível guardar no sessionStorage:',
+        error
+      );
+    }
   }
 
-  function desbloquearBotao() {
-    btn.disabled = false;
-    btn.textContent = 'PROPOSTA GRATUITA';
+  function storageRemove(key) {
+    try {
+      sessionStorage.removeItem(key);
+    } catch (error) {
+      console.error(
+        'Não foi possível remover do sessionStorage:',
+        error
+      );
+    }
   }
 
-  form.addEventListener('submit', async function (event) {
-    event.preventDefault();
-    esconderErro();
+  function createPayload(form) {
+    var formData = new FormData(form);
+    var params = new URLSearchParams(
+      window.location.search
+    );
 
-    if (!form.reportValidity()) return;
+    var eventId =
+      storageGet('meta_pending_event_id') ||
+      createEventId();
 
-    var nome = form.elements['nome'].value.trim();
-    var tel = form.elements['tel'].value.trim();
-    var email = form.elements['email'].value.trim();
-    var gasto = form.elements['gasto'].value;
-    var prazo = form.elements['prazo'].value;
-    var morada = form.elements['morada'].value.trim();
-    var website = form.elements['website'].value.trim();
+    storageSet('meta_pending_event_id', eventId);
 
-    if (!nome || !tel || !email || !gasto || !prazo || !morada) {
-      mostrarErro('Preenche todos os campos obrigatórios.');
+    var fbclid = params.get('fbclid') || '';
+    var fbp = getCookie('_fbp');
+    var fbc = getCookie('_fbc');
+
+    if (!fbc && fbclid) {
+      fbc =
+        'fb.1.' +
+        Date.now() +
+        '.' +
+        fbclid;
+    }
+
+    return {
+      nome: String(
+        formData.get('nome') || ''
+      ).trim(),
+
+      tel: String(
+        formData.get('tel') || ''
+      ).trim(),
+
+      email: String(
+        formData.get('email') || ''
+      ).trim(),
+
+      gasto: String(
+        formData.get('gasto') || ''
+      ).trim(),
+
+      prazo: String(
+        formData.get('prazo') || ''
+      ).trim(),
+
+      morada: String(
+        formData.get('morada') || ''
+      ).trim(),
+
+      website: String(
+        formData.get('website') || ''
+      ).trim(),
+
+      event_id: eventId,
+      fbp: fbp,
+      fbc: fbc,
+
+      page_url: window.location.href,
+      referrer: document.referrer || '',
+
+      utm_source:
+        params.get('utm_source') || '',
+
+      utm_medium:
+        params.get('utm_medium') || '',
+
+      utm_campaign:
+        params.get('utm_campaign') || '',
+
+      utm_content:
+        params.get('utm_content') || '',
+
+      utm_term:
+        params.get('utm_term') || '',
+
+      fbclid: fbclid,
+
+      gclid:
+        params.get('gclid') || '',
+
+      lead_source: LEAD_SOURCE,
+      page_path: PAGE_PATH
+    };
+  }
+
+  async function submitLead(options) {
+    var form = options.form;
+    var button = options.button;
+    var errorBox = options.errorBox;
+    var sendingText = options.sendingText;
+    var originalButtonText = button.textContent;
+    var beforeRedirect = options.beforeRedirect;
+
+    function hideError() {
+      errorBox.textContent = '';
+      errorBox.style.display = 'none';
+    }
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.style.display = 'block';
+
+      errorBox.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest'
+      });
+    }
+
+    hideError();
+
+    if (!form.reportValidity()) {
       return;
     }
 
-    bloquearBotao();
+    if (submissionInProgress) {
+      return;
+    }
 
-    var params = new URLSearchParams(window.location.search);
-    var payload = {
-      nome: nome, tel: tel, email: email,
-      gasto: gasto, prazo: prazo, morada: morada, website: website,
-      page_url: window.location.href, referrer: document.referrer || '',
-      utm_source: params.get('utm_source') || '',
-      utm_medium: params.get('utm_medium') || '',
-      utm_campaign: params.get('utm_campaign') || '',
-      utm_content: params.get('utm_content') || '',
-      utm_term: params.get('utm_term') || '',
-      fbclid: params.get('fbclid') || ''
-    };
+    submissionInProgress = true;
+
+    button.disabled = true;
+    button.textContent = sendingText;
+
+    var payload = createPayload(form);
 
     try {
       var response = await fetch('/api/lead', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(payload)
       });
-      var data = await response.json().catch(function () { return {}; });
-      if (!response.ok || !data.ok) throw new Error(data.error || 'Não foi possível registar o pedido. Tenta novamente.');
-      if (!data.redirect_url) throw new Error('O pedido foi recebido, mas ocorreu um erro no redirecionamento.');
+
+      var data = await response
+        .json()
+        .catch(function () {
+          return {};
+        });
+
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error ||
+          'Não foi possível registar o pedido. Tenta novamente.'
+        );
+      }
+
+      if (!data.redirect_url) {
+        throw new Error(
+          'O pedido foi recebido, mas ocorreu um erro no redirecionamento.'
+        );
+      }
+
+      console.log('Resposta da API /api/lead:', data);
+
+      if (data.event_id) {
+        try {
+          sessionStorage.setItem(
+            'meta_lead_event_id',
+            data.event_id
+          );
+        } catch (storageError) {
+          console.error(
+            'Não foi possível guardar o event ID:',
+            storageError
+          );
+        }
+      }
+
+      if (typeof beforeRedirect === 'function') {
+        beforeRedirect(data);
+      }
+
       window.location.assign(data.redirect_url);
     } catch (error) {
-      console.error('Erro no envio do formulário:', error);
-      mostrarErro(error.message || 'Ocorreu um erro. Por favor, tenta novamente.');
-      desbloquearBotao();
+      console.error(
+        'Erro no envio do formulário:',
+        error
+      );
+
+      submissionInProgress = false;
+
+      button.disabled = false;
+      button.textContent = originalButtonText;
+
+      showError(
+        error.message ||
+        'Ocorreu um erro. Por favor, tenta novamente.'
+      );
     }
-  });
-})();
-
-/* ── STICKY BAR: show/hide based on testimonials scroll position ── */
-(function () {
-  var stickyBar = document.getElementById('stickyBar');
-  var testiSection = document.querySelector('.testi-section');
-  if (!stickyBar || !testiSection) return;
-
-  function showBar() {
-    stickyBar.classList.add('is-visible');
-    stickyBar.setAttribute('aria-hidden', 'false');
-    document.body.style.paddingBottom = '72px';
   }
 
-  function hideBar() {
-    stickyBar.classList.remove('is-visible');
-    stickyBar.setAttribute('aria-hidden', 'true');
-    document.body.style.paddingBottom = '';
-  }
+  /*
+    FORMULÁRIO PRINCIPAL
+  */
+  var heroForm = document.getElementById('orcamento');
+  var heroButton =
+    document.getElementById('heroForm-btn');
+  var heroError =
+    document.getElementById('heroForm-error');
 
-  if ('IntersectionObserver' in window) {
-    var obs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          showBar();
-        } else {
-          // Only hide when the section is below the viewport (user scrolled back up above it)
-          if (entry.boundingClientRect.top > 0) hideBar();
-        }
-      });
-    }, { threshold: 0 });
-    obs.observe(testiSection);
+  if (heroForm && heroButton && heroError) {
+    heroForm.addEventListener(
+      'submit',
+      function (event) {
+        event.preventDefault();
+
+        submitLead({
+          form: heroForm,
+          button: heroButton,
+          errorBox: heroError,
+          sendingText: 'A ENVIAR…'
+        });
+      }
+    );
   } else {
-    window.addEventListener('scroll', function () {
-      var rect = testiSection.getBoundingClientRect();
-      if (rect.top < window.innerHeight) showBar();
-      else hideBar();
-    }, { passive: true });
-  }
-})();
-
-/* ── POPUP FORM: show after 45 s, dismiss to sessionStorage ── */
-(function () {
-  var STORAGE_KEY = 'popup_dismissed';
-  if (sessionStorage.getItem(STORAGE_KEY)) return;
-
-  var overlay = document.getElementById('popupOverlay');
-  var closeBtn = document.getElementById('popupClose');
-  var popupForm = document.getElementById('popupForm');
-  var popupBtn = document.getElementById('popupForm-btn');
-  var popupErr = document.getElementById('popupForm-error');
-  if (!overlay || !closeBtn || !popupForm || !popupBtn || !popupErr) return;
-
-  function openPopup() {
-    if (sessionStorage.getItem(STORAGE_KEY)) return;
-    overlay.classList.add('is-open');
-    overlay.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-    closeBtn.focus();
+    console.error(
+      'Não foi possível encontrar o formulário principal.'
+    );
   }
 
-  function closePopup() {
-    overlay.classList.remove('is-open');
-    overlay.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-    sessionStorage.setItem(STORAGE_KEY, '1');
-  }
+  /*
+    STICKY BAR
+  */
+  var stickyBar =
+    document.getElementById('stickyBar');
 
-  setTimeout(openPopup, 5000);
+  var testiSection =
+    document.querySelector('.testi-section');
 
-  closeBtn.addEventListener('click', closePopup);
-  overlay.addEventListener('click', function (e) {
-    if (e.target === overlay) closePopup();
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && overlay.classList.contains('is-open')) closePopup();
-  });
+  if (stickyBar && testiSection) {
+    function showBar() {
+      stickyBar.classList.add('is-visible');
+      stickyBar.setAttribute(
+        'aria-hidden',
+        'false'
+      );
 
-  popupForm.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    popupErr.style.display = 'none';
-    popupErr.textContent = '';
-    if (!popupForm.reportValidity()) return;
-
-    var nome = popupForm.elements['nome'].value.trim();
-    var tel = popupForm.elements['tel'].value.trim();
-    var email = popupForm.elements['email'].value.trim();
-    var gasto = popupForm.elements['gasto'].value;
-    var prazo = popupForm.elements['prazo'].value;
-    var morada = popupForm.elements['morada'].value.trim();
-    var website = popupForm.elements['website'].value.trim();
-
-    if (!nome || !tel || !email || !gasto || !prazo || !morada) {
-      popupErr.textContent = 'Preenche todos os campos obrigatórios.';
-      popupErr.style.display = 'block';
-      return;
+      document.body.style.paddingBottom =
+        '72px';
     }
 
-    popupBtn.disabled = true;
-    popupBtn.textContent = 'A ENVIAR…';
+    function hideBar() {
+      stickyBar.classList.remove('is-visible');
+      stickyBar.setAttribute(
+        'aria-hidden',
+        'true'
+      );
 
-    var params = new URLSearchParams(window.location.search);
-    var payload = {
-      nome: nome, tel: tel, email: email,
-      gasto: gasto, prazo: prazo, morada: morada, website: website,
-      page_url: window.location.href, referrer: document.referrer || '',
-      utm_source: params.get('utm_source') || '',
-      utm_medium: params.get('utm_medium') || '',
-      utm_campaign: params.get('utm_campaign') || '',
-      utm_content: params.get('utm_content') || '',
-      utm_term: params.get('utm_term') || '',
-      fbclid: params.get('fbclid') || ''
-    };
-
-    try {
-      var response = await fetch('/api/lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      var data = await response.json().catch(function () { return {}; });
-      if (!response.ok || !data.ok) throw new Error(data.error || 'Não foi possível registar o pedido. Tenta novamente.');
-      if (!data.redirect_url) throw new Error('O pedido foi recebido, mas ocorreu um erro no redirecionamento.');
-      sessionStorage.setItem(STORAGE_KEY, '1');
-      window.location.assign(data.redirect_url);
-    } catch (err) {
-      console.error('Erro no popup form:', err);
-      popupErr.textContent = err.message || 'Ocorreu um erro. Tenta novamente.';
-      popupErr.style.display = 'block';
-      popupBtn.disabled = false;
-      popupBtn.textContent = 'RECEBER PROPOSTA GRATUITA →';
+      document.body.style.paddingBottom = '';
     }
-  });
+
+    if ('IntersectionObserver' in window) {
+      var stickyObserver =
+        new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                showBar();
+              } else if (
+                entry.boundingClientRect.top > 0
+              ) {
+                hideBar();
+              }
+            });
+          },
+          {
+            threshold: 0
+          }
+        );
+
+      stickyObserver.observe(testiSection);
+    } else {
+      window.addEventListener(
+        'scroll',
+        function () {
+          var rect =
+            testiSection.getBoundingClientRect();
+
+          if (rect.top < window.innerHeight) {
+            showBar();
+          } else {
+            hideBar();
+          }
+        },
+        {
+          passive: true
+        }
+      );
+    }
+  }
+
+  /*
+    POPUP
+  */
+  var POPUP_STORAGE_KEY =
+    'popup_dismissed';
+
+  var popupOverlay =
+    document.getElementById('popupOverlay');
+
+  var popupClose =
+    document.getElementById('popupClose');
+
+  var popupForm =
+    document.getElementById('popupForm');
+
+  var popupButton =
+    document.getElementById('popupForm-btn');
+
+  var popupError =
+    document.getElementById('popupForm-error');
+
+  if (
+    popupOverlay &&
+    popupClose &&
+    popupForm &&
+    popupButton &&
+    popupError
+  ) {
+    function openPopup() {
+      if (storageGet(POPUP_STORAGE_KEY)) {
+        return;
+      }
+
+      popupOverlay.classList.add('is-open');
+
+      popupOverlay.setAttribute(
+        'aria-hidden',
+        'false'
+      );
+
+      document.body.style.overflow = 'hidden';
+
+      popupClose.focus();
+    }
+
+    function closePopup() {
+      popupOverlay.classList.remove('is-open');
+
+      popupOverlay.setAttribute(
+        'aria-hidden',
+        'true'
+      );
+
+      document.body.style.overflow = '';
+
+      storageSet(POPUP_STORAGE_KEY, '1');
+    }
+
+    if (!storageGet(POPUP_STORAGE_KEY)) {
+      setTimeout(openPopup, 45000);
+    }
+
+    popupClose.addEventListener(
+      'click',
+      closePopup
+    );
+
+    popupOverlay.addEventListener(
+      'click',
+      function (event) {
+        if (event.target === popupOverlay) {
+          closePopup();
+        }
+      }
+    );
+
+    document.addEventListener(
+      'keydown',
+      function (event) {
+        if (
+          event.key === 'Escape' &&
+          popupOverlay.classList.contains(
+            'is-open'
+          )
+        ) {
+          closePopup();
+        }
+      }
+    );
+
+    popupForm.addEventListener(
+      'submit',
+      function (event) {
+        event.preventDefault();
+
+        submitLead({
+          form: popupForm,
+          button: popupButton,
+          errorBox: popupError,
+          sendingText: 'A ENVIAR…',
+
+          beforeRedirect: function () {
+            storageSet(
+              POPUP_STORAGE_KEY,
+              '1'
+            );
+          }
+        });
+      }
+    );
+  }
 })();
 </script>
 

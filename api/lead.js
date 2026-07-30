@@ -632,6 +632,15 @@ export default {
     var fbclid =
       clean(body.fbclid, 500);
 
+    var gclid =
+      clean(body.gclid, 500);
+
+    var leadSource =
+      clean(body.lead_source, 50);
+
+    var pagePath =
+      clean(body.page_path, 300);
+
     /*
      * Tenta primeiro os valores enviados
      * pelo browser e depois os cookies.
@@ -674,7 +683,9 @@ export default {
         lead_quality:
           'unqualified',
         redirect_url:
-          '/sucesso-2.html',
+          leadSource === 'homepage'
+            ? '/sucesso-2-hp'
+            : '/sucesso-2',
         event_id: null,
         meta_server_sent: false
       });
@@ -831,26 +842,44 @@ export default {
         utmTerm,
 
       fbclid:
-        fbclid
+        fbclid,
+
+      gclid:
+        gclid,
+
+      lead_source:
+        leadSource || 'meta_landing_page',
+
+      page_path:
+        pagePath
     };
 
-    var webhookUrl = clean(
-      process.env.GHL_WEBHOOK_URL,
-      2048
-    );
+    var webhookUrl;
 
-    if (!webhookUrl) {
-      console.error(
-        'GHL_WEBHOOK_URL não está configurado.'
+    if (leadSource === 'homepage') {
+      webhookUrl = clean(
+        process.env.GHL_WEBHOOK_URL_HP,
+        2048
       );
 
+      if (!webhookUrl) {
+        console.error('GHL_WEBHOOK_URL_HP não está configurado.');
+        return json({ ok: false, error: 'Webhook não está configurado.' }, 500);
+      }
+    } else if (leadSource === 'meta_landing_page') {
+      webhookUrl = clean(
+        process.env.GHL_WEBHOOK_URL_LP,
+        2048
+      );
+
+      if (!webhookUrl) {
+        console.error('GHL_WEBHOOK_URL_LP não está configurado.');
+        return json({ ok: false, error: 'Webhook não está configurado.' }, 500);
+      }
+    } else {
       return json(
-        {
-          ok: false,
-          error:
-            'GHL_WEBHOOK_URL não está configurado.'
-        },
-        500
+        { ok: false, error: 'Origem da lead inválida.' },
+        400
       );
     }
 
@@ -970,13 +999,13 @@ export default {
     }
 
     /*
-     * Leads qualificadas vão para sucesso.html.
-     * Leads não qualificadas vão para sucesso-2.html.
+     * Homepage → /sucesso-hp ou /sucesso-2-hp
+     * LP Facebook → /sucesso ou /sucesso-2
      */
     var redirectUrl =
       leadQuality === 'qualified'
-        ? '/sucesso.html'
-        : '/sucesso-2.html';
+        ? (leadSource === 'homepage' ? '/sucesso-hp' : '/sucesso')
+        : (leadSource === 'homepage' ? '/sucesso-2-hp' : '/sucesso-2');
 
     return json({
       ok: true,
