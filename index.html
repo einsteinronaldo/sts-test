@@ -206,6 +206,7 @@
     }
     .header-cta:hover { background: var(--accent-hover); transform: translateY(-1px); }
     .header-cta:active { transform: translateY(0); }
+    @media (min-width: 961px) { .header-cta { display: none; } }
 
     /* ── HERO ── */
     .hero {
@@ -1066,7 +1067,7 @@
       display: flex;
       align-items: flex-start;
       justify-content: flex-end;
-      padding: 96px 76px 28px 48px; /* top clearance for transparent header */
+      padding: 20px 76px 20px 48px; /* logo is left-only on desktop, form is right — no overlap */
       position: relative;
       z-index: 1;
       overflow-y: auto;
