@@ -697,16 +697,18 @@
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
       display: flex; align-items: center; justify-content: center;
-      padding: 24px;
+      padding: 16px;
       opacity: 0; pointer-events: none;
       transition: opacity 0.35s ease;
     }
     .popup-overlay.is-open { opacity: 1; pointer-events: all; }
     .popup-card {
       background: #fff; border-radius: 22px;
-      padding: 48px 44px 40px;
+      padding: 32px 44px 24px;
       max-width: 460px; width: 100%;
       position: relative;
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
       box-shadow: 0 40px 100px rgba(0,0,0,0.45), 0 8px 24px rgba(0,0,0,0.2);
       transform: scale(0.93) translateY(20px);
       transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
@@ -728,7 +730,7 @@
       border-radius: 100px; padding: 5px 12px;
       font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
       text-transform: uppercase; color: var(--accent);
-      margin-bottom: 14px;
+      margin-bottom: 8px;
     }
     .popup-urgency::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse-dot 1.4s ease-in-out infinite; }
     @keyframes pulse-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.4); } }
@@ -738,10 +740,10 @@
       font-weight: 900; color: var(--dark);
       letter-spacing: -0.03em; line-height: 1.2;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
-    .popup-sub { font-size: 14px; color: var(--muted); line-height: 1.65; margin-bottom: 24px; }
-    .popup-form-wrap { display: flex; flex-direction: column; gap: 10px; }
+    .popup-sub { font-size: 14px; color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
+    .popup-form-wrap { display: flex; flex-direction: column; gap: 8px; }
     .popup-field-label {
       display: block; font-size: 11px; font-weight: 700; color: var(--dark);
       letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px;
@@ -749,11 +751,11 @@
     .popup-submit {
       width: 100%; background: var(--accent); color: #fff; font-weight: 800;
       font-size: 14px; letter-spacing: 0.03em; text-transform: uppercase;
-      border: none; border-radius: 8px; padding: 17px;
+      border: none; border-radius: 8px; padding: 13px;
       cursor: pointer; font-family: var(--font);
       transition: background 0.18s ease, transform 0.12s ease;
       box-shadow: 0 4px 18px rgba(232,56,10,0.38);
-      margin-top: 4px;
+      margin-top: 2px;
     }
     .popup-submit:hover { background: var(--accent-hover); transform: translateY(-1px); }
     .popup-submit:active { transform: translateY(0); }
@@ -763,17 +765,11 @@
       .popup-card { padding: 40px 24px 32px; border-radius: 16px; }
     }
 
-    /* ── CLOUDFLARE TURNSTILE ── */
+    /* ── CLOUDFLARE TURNSTILE (invisible mode) ── */
     #hero-turnstile,
     #popup-turnstile {
-      display: flex;
-      justify-content: center;
-      width: 100%;
+      height: 0;
       overflow: hidden;
-    }
-    /* Reduz padding lateral em mobile para o widget de 300 px não transbordar */
-    @media (max-width: 960px) {
-      .hsplit-form { padding: 28px 20px; }
     }
     @media (max-width: 520px) {
       .popup-card { padding: 40px 20px 32px; }
@@ -972,12 +968,16 @@
       flex: 1;
       background: transparent;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: flex-end;
       padding: 96px 76px 28px 48px; /* top clearance for transparent header */
       position: relative;
       z-index: 1;
+      overflow-y: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
+    .hero-split-right::-webkit-scrollbar { display: none; }
     .hsplit-form {
       width: 100%;
       max-width: 400px;
@@ -3148,7 +3148,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           '#popup-turnstile',
           {
             sitekey: TURNSTILE_SITE_KEY,
-            theme: 'auto'
+            size: 'invisible'
           }
         );
       } else if (popupTurnstileId === null) {
@@ -3164,7 +3164,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               '#popup-turnstile',
               {
                 sitekey: TURNSTILE_SITE_KEY,
-                theme: 'auto'
+                size: 'invisible'
               }
             );
           } else {
@@ -3281,7 +3281,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         '#hero-turnstile',
         {
           sitekey: TURNSTILE_SITE_KEY,
-          theme: 'auto'
+          size: 'invisible'
         }
       );
     }
