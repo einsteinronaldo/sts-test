@@ -139,6 +139,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onloadTurnstileCallback" defer></script>
 
   <style>
     :root {
@@ -1695,6 +1696,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <div id="heroForm-error" role="alert" aria-live="polite" style="display:none;background:#fff0ee;border:1px solid rgba(232,56,10,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent);line-height:1.5;"></div>
 
+      <div id="hero-turnstile" style="margin-bottom:8px;"></div>
+
       <button type="submit" class="form-submit" id="heroForm-btn">PROPOSTA GRATUITA</button>
       <div class="form-note">Grátis · Sem compromisso · Resposta em 24 horas</div>
     </form>
@@ -2764,6 +2767,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <div id="popupForm-error" role="alert" aria-live="polite" style="display:none;background:#fff0ee;border:1px solid rgba(232,56,10,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent);line-height:1.5;"></div>
 
+      <div id="popup-turnstile" style="margin-bottom:8px;"></div>
+
       <button type="submit" class="popup-submit" id="popupForm-btn">RECEBER PROPOSTA GRATUITA →</button>
       <div class="popup-note">Grátis · Sem compromisso · Resposta em 24 horas</div>
     </form>
@@ -2778,6 +2783,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   var LEAD_SOURCE = 'homepage';
   var PAGE_PATH = '/';
+
+  // Chave pública Turnstile (não é secreta).
+  // Substituir pela chave real do Cloudflare Dashboard.
+  // Chaves de teste: sitekey 1x00000000000000000000AA | secret 1x0000000000000000000000000000000AA
+  var TURNSTILE_SITE_KEY = '0x4AAAAAAECDcmQjxP2Cuuts';
+
+  // Widget IDs para poder fazer reset
+  var heroTurnstileId = null;
+  var popupTurnstileId = null;
 
   function getCookie(name) {
     var prefix = name + '=';
@@ -2929,7 +2943,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         params.get('gclid') || '',
 
       lead_source: LEAD_SOURCE,
-      page_path: PAGE_PATH
+      page_path: PAGE_PATH,
+
+      'cf-turnstile-response': String(
+        formData.get('cf-turnstile-response') || ''
+      ).trim()
     };
   }
 
@@ -3029,6 +3047,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       );
 
       submissionInProgress = false;
+
+      // Limpar event_id para que o próximo envio
+      // gere um novo ID (evita dedup no servidor).
+      storageRemove('meta_pending_event_id');
+
+      // Forçar novo token Turnstile no próximo envio.
+      if (window.turnstile) {
+        if (heroTurnstileId !== null) {
+          window.turnstile.reset(heroTurnstileId);
+        }
+        if (popupTurnstileId !== null) {
+          window.turnstile.reset(popupTurnstileId);
+        }
+      }
 
       button.disabled = false;
       button.textContent = originalButtonText;
@@ -3182,6 +3214,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       document.body.style.overflow = 'hidden';
 
+      // Renderizar widget Turnstile no popup (lazy,
+      // só quando o popup abre pela primeira vez).
+      if (window.turnstile && popupTurnstileId === null) {
+        popupTurnstileId = window.turnstile.render(
+          '#popup-turnstile',
+          {
+            sitekey: TURNSTILE_SITE_KEY,
+            theme: 'auto'
+          }
+        );
+      }
+
       popupClose.focus();
     }
 
@@ -3251,6 +3295,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
     );
   }
+
+  // Chamado pela API do Cloudflare Turnstile
+  // após o script carregar (?onload=onloadTurnstileCallback).
+  window.onloadTurnstileCallback = function () {
+    if (
+      document.getElementById('hero-turnstile') &&
+      heroTurnstileId === null
+    ) {
+      heroTurnstileId = window.turnstile.render(
+        '#hero-turnstile',
+        {
+          sitekey: TURNSTILE_SITE_KEY,
+          theme: 'auto'
+        }
+      );
+    }
+  };
 })();
 </script>
 

@@ -320,6 +320,115 @@ async function fetchWithTimeout(
 }
 
 
+/*
+ * ─── RATE LIMITER IN-MEMORY ────────────────────────────────────────────────
+ * Funciona por instância serverless.
+ * Para produção distribuída, usar Vercel KV.
+ */
+const rateLimitStore = new Map();
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+
+function checkRateLimit(ip) {
+  if (!ip) return { allowed: true };
+
+  var now = Date.now();
+  var entry = rateLimitStore.get(ip);
+
+  if (!entry || now >= entry.resetAt) {
+    rateLimitStore.set(ip, {
+      count: 1,
+      resetAt: now + RATE_LIMIT_WINDOW_MS
+    });
+    return { allowed: true };
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX) {
+    return {
+      allowed: false,
+      retryAfter: Math.ceil(
+        (entry.resetAt - now) / 1000
+      )
+    };
+  }
+
+  entry.count += 1;
+  return { allowed: true };
+}
+
+
+/*
+ * ─── DEDUPLICAÇÃO DE EVENT_ID ──────────────────────────────────────────────
+ * Guarda respostas bem-sucedidas em cache por 5 minutos.
+ * Pedidos repetidos com o mesmo event_id recebem
+ * a resposta em cache sem reenviar ao GHL ou Meta.
+ */
+const processedLeads = new Map();
+const DEDUP_TTL_MS = 5 * 60 * 1000;
+
+function checkDuplicate(eventId) {
+  var now = Date.now();
+  var found = processedLeads.get(eventId);
+  if (found && now - found.ts < DEDUP_TTL_MS) {
+    return found.response;
+  }
+  return null;
+}
+
+function markProcessed(eventId, response) {
+  var now = Date.now();
+  // Limpar entradas expiradas
+  for (var [id, entry] of processedLeads) {
+    if (now - entry.ts > DEDUP_TTL_MS) {
+      processedLeads.delete(id);
+    }
+  }
+  processedLeads.set(eventId, {
+    ts: now,
+    response: response
+  });
+}
+
+
+/*
+ * ─── CLOUDFLARE TURNSTILE ──────────────────────────────────────────────────
+ * Valida o token gerado pelo widget no browser.
+ */
+async function verifyTurnstile(token, ip) {
+  var secret = clean(
+    process.env.TURNSTILE_SECRET_KEY,
+    1000
+  );
+
+  if (!secret) {
+    throw new Error(
+      'TURNSTILE_SECRET_KEY não está configurado.'
+    );
+  }
+
+  var payload = {
+    secret: secret,
+    response: token
+  };
+  if (ip) payload.remoteip = ip;
+
+  var resp = await fetchWithTimeout(
+    'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    },
+    5000
+  );
+
+  var data = await resp.json();
+  return data.success === true;
+}
+
+
 /**
  * Envia um evento Lead para a Meta
  * através da Conversions API.
@@ -537,6 +646,65 @@ export default {
     }
 
     /*
+     * Verificar Content-Type.
+     */
+    var contentType =
+      request.headers.get('content-type') || '';
+
+    if (!contentType.includes('application/json')) {
+      return json(
+        {
+          ok: false,
+          error:
+            'Content-Type inválido.'
+        },
+        415
+      );
+    }
+
+    /*
+     * Rate limiting: máximo 5 pedidos
+     * por IP em 10 minutos.
+     */
+    var clientIp = getClientIp(request);
+    var rateResult = checkRateLimit(clientIp);
+
+    if (!rateResult.allowed) {
+      return json(
+        {
+          ok: false,
+          error:
+            'Demasiados pedidos. Tenta novamente mais tarde.'
+        },
+        429,
+        {
+          'Retry-After': String(
+            rateResult.retryAfter
+          )
+        }
+      );
+    }
+
+    /*
+     * Limite de tamanho do payload: 50 KB.
+     */
+    var contentLengthHint = parseInt(
+      request.headers.get('content-length') || '0',
+      10
+    );
+
+    if (contentLengthHint > 51200) {
+      return json(
+        {
+          ok: false,
+          error:
+            'Pedido demasiado grande.'
+        },
+        413
+      );
+    }
+
+    /*
      * Proteção básica contra pedidos
      * originados noutro website.
      */
@@ -692,6 +860,58 @@ export default {
     }
 
     /*
+     * Verificação Cloudflare Turnstile.
+     * Rejeita bots e tráfego automatizado.
+     */
+    var cfToken = clean(
+      body['cf-turnstile-response'],
+      4096
+    );
+
+    if (!cfToken) {
+      return json(
+        {
+          ok: false,
+          error:
+            'Verificação de segurança em falta.'
+        },
+        400
+      );
+    }
+
+    try {
+      var turnstileOk = await verifyTurnstile(
+        cfToken,
+        clientIp
+      );
+
+      if (!turnstileOk) {
+        return json(
+          {
+            ok: false,
+            error:
+              'Verificação de segurança falhou. Tenta novamente.'
+          },
+          403
+        );
+      }
+    } catch (turnstileError) {
+      console.error(
+        'Erro ao verificar Turnstile:',
+        turnstileError
+      );
+
+      return json(
+        {
+          ok: false,
+          error:
+            'Erro ao verificar segurança. Tenta novamente.'
+        },
+        503
+      );
+    }
+
+    /*
      * Todos os campos são obrigatórios.
      */
     if (
@@ -788,6 +1008,20 @@ export default {
      */
     var leadQuality =
       gastoOption.quality;
+
+    /*
+     * Deduplicação: se já processámos este
+     * event_id com sucesso, devolver a resposta
+     * em cache sem reenviar ao GHL ou Meta.
+     */
+    var dupCached = checkDuplicate(eventId);
+    if (dupCached) {
+      console.log(
+        'Pedido duplicado suprimido, event_id:',
+        eventId
+      );
+      return json(dupCached);
+    }
 
     /*
      * Dados enviados para o webhook
@@ -1007,26 +1241,18 @@ export default {
         ? (leadSource === 'homepage' ? '/sucesso-hp' : '/sucesso')
         : (leadSource === 'homepage' ? '/sucesso-2-hp' : '/sucesso-2');
 
-    return json({
+    var finalResponse = {
       ok: true,
-
-      lead_quality:
-        leadQuality,
-
-      redirect_url:
-        redirectUrl,
-
-      /*
-       * O index.html deve guardar este valor
-       * no sessionStorage antes do redirect.
-       */
+      lead_quality: leadQuality,
+      redirect_url: redirectUrl,
       event_id:
         leadQuality === 'qualified'
           ? eventId
           : null,
+      meta_server_sent: metaServerSent
+    };
 
-      meta_server_sent:
-        metaServerSent
-    });
+    markProcessed(eventId, finalResponse);
+    return json(finalResponse);
   }
 };
