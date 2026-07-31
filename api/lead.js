@@ -412,6 +412,14 @@ async function verifyTurnstile(token, ip) {
   };
   if (ip) payload.remoteip = ip;
 
+  console.log('TURNSTILE REQUEST', {
+    hasSecret: Boolean(secret),
+    secretLength: secret ? secret.trim().length : 0,
+    hasToken: Boolean(token),
+    tokenLength: token ? token.length : 0,
+    remoteIpPresent: Boolean(ip)
+  });
+
   var resp = await fetchWithTimeout(
     'https://challenges.cloudflare.com/turnstile/v0/siteverify',
     {
@@ -425,6 +433,15 @@ async function verifyTurnstile(token, ip) {
   );
 
   var data = await resp.json();
+
+  console.log('TURNSTILE RESPONSE', {
+    success: data.success,
+    errorCodes: data['error-codes'] || [],
+    hostname: data.hostname || null,
+    action: data.action || null,
+    cdata: data.cdata || null
+  });
+
   return data.success === true;
 }
 
