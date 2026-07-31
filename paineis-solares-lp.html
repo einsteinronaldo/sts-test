@@ -44,7 +44,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onloadTurnstileCallback" defer></script>
-
   <style>
     :root {
       --accent: #E8380A;
@@ -2912,6 +2911,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     var payload = createPayload(form);
 
+    if (!payload['cf-turnstile-response']) {
+      showError(
+        'Verificação de segurança em curso. Aguarda um momento e tenta novamente.'
+      );
+      submissionInProgress = false;
+      button.disabled = false;
+      button.textContent = originalButtonText;
+      return;
+    }
+
     try {
       var response = await fetch('/api/lead', {
         method: 'POST',
@@ -3132,7 +3141,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         return;
       }
 
-      // Abrir overlay imediatamente, sem esperar pelo Turnstile.
       popupOverlay.classList.add('is-open');
 
       popupOverlay.setAttribute(
@@ -3144,14 +3152,33 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       // Tentar renderizar o widget Turnstile do popup (lazy).
       // O popup já está visível; o Turnstile é opcional neste momento.
+      function doRenderPopupTurnstile() {
+        try {
+          popupTurnstileId = window.turnstile.render(
+            '#popup-turnstile',
+            {
+              sitekey: TURNSTILE_SITE_KEY,
+              size: 'invisible',
+              'error-callback': function () {
+                popupTurnstileId = null;
+                popupError.textContent =
+                  'Erro na verificação de segurança. Recarrega a página e tenta novamente.';
+                popupError.style.display = 'block';
+              },
+              'expired-callback': function () {
+                if (popupTurnstileId !== null && window.turnstile) {
+                  window.turnstile.reset(popupTurnstileId);
+                }
+              }
+            }
+          );
+        } catch (e) {
+          console.warn('Turnstile popup render falhou:', e);
+        }
+      }
+
       if (window.turnstile && popupTurnstileId === null) {
-        popupTurnstileId = window.turnstile.render(
-          '#popup-turnstile',
-          {
-            sitekey: TURNSTILE_SITE_KEY,
-            size: 'invisible'
-          }
-        );
+        doRenderPopupTurnstile();
       } else if (popupTurnstileId === null) {
         // Turnstile ainda não carregou: tentar até 3× com 500 ms de intervalo.
         var tsAttempts = 0;
@@ -3161,13 +3188,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           }
           tsAttempts++;
           if (window.turnstile) {
-            popupTurnstileId = window.turnstile.render(
-              '#popup-turnstile',
-              {
-                sitekey: TURNSTILE_SITE_KEY,
-                size: 'invisible'
-              }
-            );
+            doRenderPopupTurnstile();
           } else {
             setTimeout(tryRenderPopup, 500);
           }
@@ -3278,13 +3299,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       document.getElementById('hero-turnstile') &&
       heroTurnstileId === null
     ) {
-      heroTurnstileId = window.turnstile.render(
-        '#hero-turnstile',
-        {
-          sitekey: TURNSTILE_SITE_KEY,
-          size: 'invisible'
-        }
-      );
+      try {
+        heroTurnstileId = window.turnstile.render(
+          '#hero-turnstile',
+          {
+            sitekey: TURNSTILE_SITE_KEY,
+            size: 'invisible',
+            'error-callback': function () {
+              heroTurnstileId = null;
+              if (heroError) {
+                heroError.textContent =
+                  'Erro na verificação de segurança. Recarrega a página e tenta novamente.';
+                heroError.style.display = 'block';
+              }
+            },
+            'expired-callback': function () {
+              if (heroTurnstileId !== null && window.turnstile) {
+                window.turnstile.reset(heroTurnstileId);
+              }
+            }
+          }
+        );
+      } catch (e) {
+        console.warn('Turnstile hero render falhou:', e);
+      }
     }
   };
 })();

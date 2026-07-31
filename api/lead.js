@@ -261,14 +261,14 @@ function getSafePageUrl(
  */
 function normalizeApiVersion(value) {
   var version =
-    clean(value, 20) || 'v25.0';
+    clean(value, 20) || 'v26.0';
 
   if (!version.startsWith('v')) {
     version = 'v' + version;
   }
 
   if (!/^v\d+\.\d+$/.test(version)) {
-    return 'v25.0';
+    return 'v26.0';
   }
 
   return version;
@@ -440,7 +440,8 @@ async function sendMetaLead({
   phone,
   pageUrl,
   fbp,
-  fbc
+  fbc,
+  metaApiVersion
 }) {
   var pixelId = clean(
     process.env.META_PIXEL_ID,
@@ -450,10 +451,6 @@ async function sendMetaLead({
   var accessToken = clean(
     process.env.META_CAPI_ACCESS_TOKEN,
     1000
-  );
-
-  var apiVersion = normalizeApiVersion(
-    process.env.META_GRAPH_API_VERSION
   );
 
   var testEventCode = clean(
@@ -577,7 +574,7 @@ async function sendMetaLead({
 
   var metaUrl =
     'https://graph.facebook.com/' +
-    apiVersion +
+    metaApiVersion +
     '/' +
     encodeURIComponent(pixelId) +
     '/events?access_token=' +
@@ -1186,12 +1183,15 @@ export default {
 
     var metaServerSent = false;
 
+    var metaApiVersion =
+      normalizeApiVersion(process.env.META_GRAPH_API_VERSION);
+
     console.log('META DEBUG:', {
       leadQuality: leadQuality,
       hasPixelId: Boolean(process.env.META_PIXEL_ID),
       hasAccessToken: Boolean(process.env.META_CAPI_ACCESS_TOKEN),
-      apiVersion: process.env.META_GRAPH_API_VERSION || 'v26.0',
-      testEventCode: process.env.META_TEST_EVENT_CODE || ''
+      apiVersion: metaApiVersion,
+      testMode: Boolean(process.env.META_TEST_EVENT_CODE)
     });
 
     /*
@@ -1210,7 +1210,8 @@ export default {
             phone: phone,
             pageUrl: pageUrl,
             fbp: fbp,
-            fbc: fbc
+            fbc: fbc,
+            metaApiVersion: metaApiVersion
           });
 
         metaServerSent = true;
