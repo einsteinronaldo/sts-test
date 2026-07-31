@@ -2782,88 +2782,113 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
   }
 
+  // ── Atribuição Meta Ads (persiste 7 dias em localStorage) ──────────────
+  function getMetaAttribution() {
+    var ATTR_KEY = 'meta_attribution';
+    var ATTR_TTL = 7 * 24 * 60 * 60 * 1000;
+    var FIELDS = [
+      'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
+      'fbclid', 'campaign_id', 'adset_id', 'ad_id',
+      'campaign_name', 'adset_name', 'ad_name',
+      'placement', 'site_source_name'
+    ];
+
+    var params = new URLSearchParams(window.location.search);
+    var src = (params.get('utm_source') || '').toLowerCase();
+    var ssn = (params.get('site_source_name') || '').toLowerCase();
+    var isMeta =
+      Boolean(params.get('fbclid')) ||
+      Boolean(params.get('campaign_id')) ||
+      Boolean(params.get('adset_id')) ||
+      Boolean(params.get('ad_id')) ||
+      src === 'facebook' || src === 'instagram' || src === 'fb' ||
+      ssn === 'facebook' || ssn === 'instagram';
+
+    if (isMeta) {
+      var fresh = { ts: Date.now() };
+      for (var i = 0; i < FIELDS.length; i++) {
+        fresh[FIELDS[i]] = params.get(FIELDS[i]) || '';
+      }
+      try { localStorage.setItem(ATTR_KEY, JSON.stringify(fresh)); } catch (e) {}
+      return fresh;
+    }
+
+    try {
+      var stored = JSON.parse(localStorage.getItem(ATTR_KEY) || 'null');
+      if (stored && (Date.now() - stored.ts) < ATTR_TTL) {
+        return stored;
+      }
+    } catch (e) {}
+
+    return {};
+  }
+
   function createPayload(form) {
     var formData = new FormData(form);
-    var params = new URLSearchParams(
-      window.location.search
-    );
+    var params = new URLSearchParams(window.location.search);
 
     var eventId =
       storageGet('meta_pending_event_id') ||
       createEventId();
-
     storageSet('meta_pending_event_id', eventId);
 
-    var fbclid = params.get('fbclid') || '';
+    var attr = getMetaAttribution();
+
+    var fbclid = attr.fbclid || '';
     var fbp = getCookie('_fbp');
     var fbc = getCookie('_fbc');
 
     if (!fbc && fbclid) {
-      fbc =
-        'fb.1.' +
-        Date.now() +
-        '.' +
-        fbclid;
+      fbc = 'fb.1.' + Date.now() + '.' + fbclid;
     }
 
+    var attrSrc = (attr.utm_source || '').toLowerCase();
+    var attrSsn = (attr.site_source_name || '').toLowerCase();
+    var trafficSource = (
+      fbclid ||
+      attrSrc === 'facebook' || attrSrc === 'instagram' || attrSrc === 'fb' ||
+      attrSsn === 'facebook' || attrSsn === 'instagram'
+    ) ? 'meta_paid' : 'direct_or_other';
+
     return {
-      nome: String(
-        formData.get('nome') || ''
-      ).trim(),
-
-      tel: String(
-        formData.get('tel') || ''
-      ).trim(),
-
-      email: String(
-        formData.get('email') || ''
-      ).trim(),
-
-      gasto: String(
-        formData.get('gasto') || ''
-      ).trim(),
-
-      prazo: String(
-        formData.get('prazo') || ''
-      ).trim(),
-
-      morada: String(
-        formData.get('morada') || ''
-      ).trim(),
-
-      website: String(
-        formData.get('website') || ''
-      ).trim(),
+      nome:    String(formData.get('nome')    || '').trim(),
+      tel:     String(formData.get('tel')     || '').trim(),
+      email:   String(formData.get('email')   || '').trim(),
+      gasto:   String(formData.get('gasto')   || '').trim(),
+      prazo:   String(formData.get('prazo')   || '').trim(),
+      morada:  String(formData.get('morada')  || '').trim(),
+      website: String(formData.get('website') || '').trim(),
 
       event_id: eventId,
-      fbp: fbp,
-      fbc: fbc,
+      fbp:      fbp,
+      fbc:      fbc,
 
       page_url: window.location.href,
       referrer: document.referrer || '',
 
-      utm_source:
-        params.get('utm_source') || '',
+      // UTM e Meta Ads (lidos do localStorage se a visita original tinha parâmetros)
+      utm_source:   attr.utm_source   || '',
+      utm_medium:   attr.utm_medium   || '',
+      utm_campaign: attr.utm_campaign || '',
+      utm_content:  attr.utm_content  || '',
+      utm_term:     attr.utm_term     || '',
+      fbclid:       fbclid,
+      gclid:        params.get('gclid') || '',
 
-      utm_medium:
-        params.get('utm_medium') || '',
+      // Parâmetros avançados Meta Ads
+      campaign_id:      attr.campaign_id      || '',
+      adset_id:         attr.adset_id         || '',
+      ad_id:            attr.ad_id            || '',
+      campaign_name:    attr.campaign_name    || '',
+      adset_name:       attr.adset_name       || '',
+      ad_name:          attr.ad_name          || '',
+      placement:        attr.placement        || '',
+      site_source_name: attr.site_source_name || '',
 
-      utm_campaign:
-        params.get('utm_campaign') || '',
-
-      utm_content:
-        params.get('utm_content') || '',
-
-      utm_term:
-        params.get('utm_term') || '',
-
-      fbclid: fbclid,
-
-      gclid:
-        params.get('gclid') || '',
+      traffic_source: trafficSource,
 
       lead_source: LEAD_SOURCE,
-      page_path: PAGE_PATH,
+      page_path:   PAGE_PATH,
 
       'cf-turnstile-response': String(
         formData.get('cf-turnstile-response') || ''
@@ -3001,6 +3026,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       );
     }
   }
+
+  // Captura parâmetros Meta da URL assim que a página carrega,
+  // mesmo que o utilizador não submeta o formulário nesta visita.
+  getMetaAttribution();
 
   /*
     FORMULÁRIO PRINCIPAL

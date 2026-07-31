@@ -817,6 +817,31 @@ export default {
     var gclid =
       clean(body.gclid, 500);
 
+    // Parâmetros avançados Meta Ads
+    var campaignId   = clean(body.campaign_id,      100);
+    var adsetId      = clean(body.adset_id,         100);
+    var adId         = clean(body.ad_id,            100);
+    var campaignName = clean(body.campaign_name,    300);
+    var adsetName    = clean(body.adset_name,       300);
+    var adName       = clean(body.ad_name,          300);
+    var placement    = clean(body.placement,        100);
+    var siteSourceName = clean(body.site_source_name, 100);
+
+    // traffic_source recalculado no servidor a partir de sinais confiáveis
+    // (não confia no valor enviado pelo browser para decisões de segurança).
+    var computedTrafficSource = (function () {
+      var src = (utmSource || '').toLowerCase();
+      var ssn = (siteSourceName || '').toLowerCase();
+      if (
+        fbclid ||
+        src === 'facebook' || src === 'instagram' || src === 'fb' ||
+        ssn === 'facebook' || ssn === 'instagram'
+      ) {
+        return 'meta_paid';
+      }
+      return 'direct_or_other';
+    }());
+
     var leadSource =
       clean(body.lead_source, 50);
 
@@ -1094,6 +1119,22 @@ export default {
 
       gclid:
         gclid,
+
+      // Origem do tráfego (calculada no servidor)
+      ad_source:
+        siteSourceName || utmSource,
+
+      traffic_source:
+        computedTrafficSource,
+
+      // Parâmetros avançados Meta Ads
+      campaign_id:   campaignId,
+      campaign_name: campaignName,
+      adset_id:      adsetId,
+      adset_name:    adsetName,
+      ad_id:         adId,
+      ad_name:       adName,
+      placement:     placement,
 
       lead_source:
         leadSource || 'meta_landing_page',
