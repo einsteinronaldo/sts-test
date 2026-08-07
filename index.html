@@ -1715,7 +1715,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="hsplit-fields">
         <input class="form-input-sm" type="text" id="nome" name="nome" placeholder="Nome completo" required autocomplete="name" maxlength="150" />
         <div class="form-tel-sm">
-          <div class="tel-country-picker"><img class="tel-flag" src="https://flagcdn.com/20x15/pt.png" width="20" height="15" alt="PT"><span class="tel-caret">▾</span></div>
+          <div class="tel-country-picker"><img class="tel-flag" src="https://flagcdn.com/40x30/pt.png" width="40" height="30" alt="PT"><span class="tel-caret">▾</span></div>
           <input class="form-input-sm" type="tel" id="tel" name="tel" placeholder="Telemóvel" required autocomplete="tel" inputmode="tel" maxlength="20" />
         </div>
         <input class="form-input-sm" type="email" id="email" name="email" placeholder="E-mail" required autocomplete="email" maxlength="254" />
@@ -2794,7 +2794,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <input class="form-input-sm" type="text" id="popup-nome" name="nome" placeholder="Nome completo" required autocomplete="name" maxlength="150" />
 
       <div class="form-tel-sm">
-        <div class="tel-country-picker"><img class="tel-flag" src="https://flagcdn.com/20x15/pt.png" width="20" height="15" alt="PT"><span class="tel-caret">▾</span></div>
+        <div class="tel-country-picker"><img class="tel-flag" src="https://flagcdn.com/40x30/pt.png" width="40" height="30" alt="PT"><span class="tel-caret">▾</span></div>
         <input class="form-input-sm" type="tel" id="popup-tel" name="tel" placeholder="Telemóvel" required autocomplete="tel" inputmode="tel" maxlength="20" />
       </div>
 
@@ -3511,7 +3511,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   var activeDropdown = null;
 
   function flagImg(iso, cls) {
-    return '<img class="' + cls + '" src="https://flagcdn.com/20x15/' + iso + '.png" width="20" height="15" alt="' + iso.toUpperCase() + '">';
+    return '<img class="' + cls + '" src="https://flagcdn.com/40x30/' + iso + '.png" width="40" height="30" alt="' + iso.toUpperCase() + '">';
   }
 
   function buildDropdown() {
@@ -3559,7 +3559,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     panel.querySelectorAll('.tel-dropdown-opt').forEach(function(row, i) {
       row.addEventListener('click', function(e) {
         e.stopPropagation();
-        imgEl.src = 'https://flagcdn.com/20x15/' + countries[i].iso + '.png';
+        imgEl.src = 'https://flagcdn.com/40x30/' + countries[i].iso + '.png';
         imgEl.alt = countries[i].iso.toUpperCase();
         close();
       });
