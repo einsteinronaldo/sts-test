@@ -1035,7 +1035,7 @@
       display: flex; align-items: center; gap: 2px; cursor: pointer; flex-shrink: 0;
       user-select: none; -webkit-user-select: none;
     }
-    .tel-flag { font-size: 18px; line-height: 1; }
+    .tel-flag { display: block; width: 22px; height: 16px; object-fit: cover; border-radius: 2px; flex-shrink: 0; }
     .tel-caret { font-size: 9px; color: #999; margin-top: 1px; }
     .tel-dropdown {
       position: fixed; z-index: 99999; display: none;
@@ -1047,7 +1047,7 @@
       display: flex; align-items: center; gap: 10px; white-space: nowrap;
     }
     .tel-dropdown-opt:hover { background: #f5f5f5; }
-    .tel-opt-flag { font-size: 18px; line-height: 1; }
+    .tel-opt-flag { display: block; width: 22px; height: 16px; object-fit: cover; border-radius: 2px; flex-shrink: 0; }
     .tel-opt-name { flex: 1; color: #333; font-family: var(--font); }
     .tel-opt-code { color: #999; font-size: 12px; }
     .form-tel-sm .form-input-sm { border-radius: 0 7px 7px 0; }
@@ -1619,7 +1619,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="hsplit-fields">
         <input class="form-input-sm" type="text" id="nome" name="nome" placeholder="Nome completo" required autocomplete="name" maxlength="150" />
         <div class="form-tel-sm">
-          <div class="tel-country-picker"><span class="tel-flag">🇵🇹</span><span class="tel-caret">▾</span></div>
+          <div class="tel-country-picker"><img class="tel-flag" src="https://flagcdn.com/20x15/pt.png" width="20" height="15" alt="PT"><span class="tel-caret">▾</span></div>
           <input class="form-input-sm" type="tel" id="tel" name="tel" placeholder="Telemóvel" required autocomplete="tel" inputmode="tel" maxlength="20" />
         </div>
         <input class="form-input-sm" type="email" id="email" name="email" placeholder="E-mail" required autocomplete="email" maxlength="254" />
@@ -2698,7 +2698,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <input class="form-input-sm" type="text" id="popup-nome" name="nome" placeholder="Nome completo" required autocomplete="name" maxlength="150" />
 
       <div class="form-tel-sm">
-        <div class="tel-country-picker"><span class="tel-flag">🇵🇹</span><span class="tel-caret">▾</span></div>
+        <div class="tel-country-picker"><img class="tel-flag" src="https://flagcdn.com/20x15/pt.png" width="20" height="15" alt="PT"><span class="tel-caret">▾</span></div>
         <input class="form-input-sm" type="tel" id="popup-tel" name="tel" placeholder="Telemóvel" required autocomplete="tel" inputmode="tel" maxlength="20" />
       </div>
 
@@ -3392,27 +3392,31 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script>
 (function() {
   var countries = [
-    { flag: '🇵🇹', name: 'Portugal', code: '+351' },
-    { flag: '🇦🇴', name: 'Angola', code: '+244' },
-    { flag: '🇲🇿', name: 'Moçambique', code: '+258' },
-    { flag: '🇪🇸', name: 'Espanha', code: '+34' },
-    { flag: '🇫🇷', name: 'França', code: '+33' },
-    { flag: '🇬🇧', name: 'Reino Unido', code: '+44' },
-    { flag: '🇩🇪', name: 'Alemanha', code: '+49' },
-    { flag: '🇧🇷', name: 'Brasil', code: '+55' },
-    { flag: '🇮🇹', name: 'Itália', code: '+39' },
-    { flag: '🇳🇱', name: 'Países Baixos', code: '+31' },
-    { flag: '🇧🇪', name: 'Bélgica', code: '+32' },
-    { flag: '🇨🇭', name: 'Suíça', code: '+41' },
-    { flag: '🇸🇪', name: 'Suécia', code: '+46' },
-    { flag: '🇳🇴', name: 'Noruega', code: '+47' },
-    { flag: '🇩🇰', name: 'Dinamarca', code: '+45' },
-    { flag: '🇫🇮', name: 'Finlândia', code: '+358' },
-    { flag: '🇮🇪', name: 'Irlanda', code: '+353' },
-    { flag: '🇺🇸', name: 'EUA', code: '+1' },
+    { iso: 'pt', name: 'Portugal', code: '+351' },
+    { iso: 'ao', name: 'Angola', code: '+244' },
+    { iso: 'mz', name: 'Moçambique', code: '+258' },
+    { iso: 'es', name: 'Espanha', code: '+34' },
+    { iso: 'fr', name: 'França', code: '+33' },
+    { iso: 'gb', name: 'Reino Unido', code: '+44' },
+    { iso: 'de', name: 'Alemanha', code: '+49' },
+    { iso: 'br', name: 'Brasil', code: '+55' },
+    { iso: 'it', name: 'Itália', code: '+39' },
+    { iso: 'nl', name: 'Países Baixos', code: '+31' },
+    { iso: 'be', name: 'Bélgica', code: '+32' },
+    { iso: 'ch', name: 'Suíça', code: '+41' },
+    { iso: 'se', name: 'Suécia', code: '+46' },
+    { iso: 'no', name: 'Noruega', code: '+47' },
+    { iso: 'dk', name: 'Dinamarca', code: '+45' },
+    { iso: 'fi', name: 'Finlândia', code: '+358' },
+    { iso: 'ie', name: 'Irlanda', code: '+353' },
+    { iso: 'us', name: 'EUA', code: '+1' },
   ];
 
   var activeDropdown = null;
+
+  function flagImg(iso, cls) {
+    return '<img class="' + cls + '" src="https://flagcdn.com/20x15/' + iso + '.png" width="20" height="15" alt="' + iso.toUpperCase() + '">';
+  }
 
   function buildDropdown() {
     var panel = document.createElement('div');
@@ -3421,7 +3425,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       var row = document.createElement('div');
       row.className = 'tel-dropdown-opt';
       row.innerHTML =
-        '<span class="tel-opt-flag">' + c.flag + '</span>' +
+        flagImg(c.iso, 'tel-opt-flag') +
         '<span class="tel-opt-name">' + c.name + '</span>' +
         '<span class="tel-opt-code">' + c.code + '</span>';
       panel.appendChild(row);
@@ -3431,7 +3435,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   function initPicker(picker) {
-    var flagEl = picker.querySelector('.tel-flag');
+    var imgEl = picker.querySelector('.tel-flag');
     var panel = buildDropdown();
     var isOpen = false;
 
@@ -3459,13 +3463,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     panel.querySelectorAll('.tel-dropdown-opt').forEach(function(row, i) {
       row.addEventListener('click', function(e) {
         e.stopPropagation();
-        flagEl.textContent = countries[i].flag;
+        imgEl.src = 'https://flagcdn.com/20x15/' + countries[i].iso + '.png';
+        imgEl.alt = countries[i].iso.toUpperCase();
         close();
       });
     });
 
     document.addEventListener('click', function() { if (isOpen) close(); });
-    window.addEventListener('scroll', function() { if (isOpen) close(); }, true);
+    // só fecha no scroll da página, não no scroll interno do painel
+    window.addEventListener('scroll', function(e) {
+      if (isOpen && !panel.contains(e.target)) close();
+    }, true);
     window.addEventListener('resize', function() { if (isOpen) open(); });
   }
 
