@@ -252,7 +252,7 @@
     .form-select:focus { border-color: var(--accent); }
     .form-privacy {
       display: flex; align-items: flex-start; gap: 10px;
-      font-size: 12px; color: var(--muted); margin: 16px 0;
+      font-size: 12px; color: var(--muted); margin: 0;
     }
     .form-privacy input[type=checkbox] { accent-color: var(--accent); margin-top: 2px; width: 14px; height: 14px; flex-shrink: 0; }
     .form-privacy a { color: var(--accent); text-decoration: none; }
@@ -818,8 +818,7 @@
     /* ══ HERO SPLIT (v2 — foto real) ══ */
     .hero-split {
       position: relative;
-      height: calc(100vh - 36px); /* só subtrai o ticker, header está em absolute */
-      min-height: 560px;
+      min-height: calc(100vh - 36px);
       overflow: hidden;
       background: #071a04 url('teste lp.jpg') center 38% / cover no-repeat;
     }
@@ -849,7 +848,7 @@
       mix-blend-mode: multiply;
     }
     .hero-split-inner {
-      width: 100%; height: 100%;
+      width: 100%; min-height: 100%;
       display: flex;
       position: relative; z-index: 1;
     }
@@ -973,11 +972,8 @@
       padding: 20px 76px 20px 48px; /* logo is left-only on desktop, form is right — no overlap */
       position: relative;
       z-index: 1;
-      overflow-y: auto;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+      overflow-y: visible;
     }
-    .hero-split-right::-webkit-scrollbar { display: none; }
     .hsplit-form {
       width: 100%;
       max-width: 400px;
@@ -1615,6 +1611,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <div id="heroForm-error" role="alert" aria-live="polite" style="display:none;background:#fff0ee;border:1px solid rgba(232,56,10,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent);line-height:1.5;"></div>
+
+      <div class="form-privacy">
+        <input type="checkbox" id="rgpd" name="rgpd" />
+        <label for="rgpd">Aceito os <a href="/termos-e-condicoes" target="_blank"><strong>Termos e Condições</strong></a> e a <a href="/politica-de-privacidade" target="_blank"><strong>Política de Privacidade</strong></a>.</label>
+      </div>
 
       <div id="hero-turnstile"></div>
 
@@ -2584,7 +2585,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="footer-logo">SUN<span>TO</span>SUN</div>
   <div>
     Financiamento sujeito a aprovação. Valores estimados com base em projetos reais.<br />
-    <a href="#">Política de Privacidade</a> · <a href="#">Termos e Condições</a> · <a href="#">DGEG</a>
+    <a href="/politica-de-privacidade">Política de Privacidade</a> · <a href="/termos-e-condicoes">Termos e Condições</a> · <a href="#">DGEG</a>
+  </div>
+  <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,0.3);max-width:860px;margin-left:auto;margin-right:auto;line-height:1.65;">
+    Aviso Legal: A Sun to Sun é uma marca/website e atua como intermediária na captação e encaminhamento de pedidos de informação, simulação ou orçamento para empresas parceiras do setor fotovoltaico. A Sun to Sun não realiza instalações, não emite orçamentos finais, não presta serviços técnicos de instalação e não assume responsabilidade pela execução, qualidade, prazos, garantias ou condições comerciais dos serviços prestados pelas empresas parceiras, sem prejuízo da responsabilidade legalmente aplicável.
   </div>
   <div style="margin-top:8px;">© 2026 SUN TO SUN — Todos os direitos reservados.</div>
 </footer>
@@ -2686,6 +2690,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <input class="form-input-sm" type="email" id="popup-email" name="email" placeholder="E-mail" required autocomplete="email" maxlength="254" />
 
       <div id="popupForm-error" role="alert" aria-live="polite" style="display:none;background:#fff0ee;border:1px solid rgba(232,56,10,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent);line-height:1.5;"></div>
+
+      <div class="form-privacy">
+        <input type="checkbox" id="popup-rgpd" name="rgpd" />
+        <label for="popup-rgpd">Aceito os <a href="/termos-e-condicoes" target="_blank"><strong>Termos e Condições</strong></a> e a <a href="/politica-de-privacidade" target="_blank"><strong>Política de Privacidade</strong></a>.</label>
+      </div>
 
       <div id="popup-turnstile"></div>
 
@@ -2890,6 +2899,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       lead_source: LEAD_SOURCE,
       page_path:   PAGE_PATH,
 
+      rgpd_consent: formData.get('rgpd') === 'on' ? 'sim' : 'nao',
+
       'cf-turnstile-response': String(
         formData.get('cf-turnstile-response') || ''
       ).trim()
@@ -2920,6 +2931,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
 
     hideError();
+
+    var rgpdCb = form.querySelector('input[name="rgpd"]');
+    if (rgpdCb && !rgpdCb.checked) {
+      showError('Para continuar, aceita os Termos e Condições e a Política de Privacidade.');
+      return;
+    }
 
     if (!form.reportValidity()) {
       return;

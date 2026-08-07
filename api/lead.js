@@ -827,6 +827,8 @@ export default {
     var placement    = clean(body.placement,        100);
     var siteSourceName = clean(body.site_source_name, 100);
 
+    var rgpdConsent = clean(body.rgpd_consent, 10) === 'sim' ? 'sim' : 'nao';
+
     // traffic_source recalculado no servidor a partir de sinais confiáveis
     // (não confia no valor enviado pelo browser para decisões de segurança).
     var computedTrafficSource = (function () {
@@ -1140,7 +1142,10 @@ export default {
         leadSource || 'meta_landing_page',
 
       page_path:
-        pagePath
+        pagePath,
+
+      rgpd_consent:
+        rgpdConsent
     };
 
     var webhookUrl;
