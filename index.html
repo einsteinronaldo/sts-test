@@ -1125,12 +1125,27 @@
     .form-input-sm:focus { border-color: var(--accent); background: #fff; }
     .form-input-sm::placeholder { color: #bbb; }
     .form-tel-sm { display: flex; }
-    .form-tel-pre-sm {
+    .tel-country-picker {
       background: var(--gray-bg); border: 1.5px solid var(--border); border-right: none;
-      border-radius: 7px 0 0 7px; padding: 10px 10px; font-size: 13px;
-      color: var(--text); font-weight: 600; white-space: nowrap;
-      font-family: var(--font); flex-shrink: 0;
+      border-radius: 7px 0 0 7px; padding: 9px 8px 9px 10px;
+      display: flex; align-items: center; gap: 2px; cursor: pointer; flex-shrink: 0;
+      user-select: none; -webkit-user-select: none;
     }
+    .tel-flag { font-size: 18px; line-height: 1; }
+    .tel-caret { font-size: 9px; color: #999; margin-top: 1px; }
+    .tel-dropdown {
+      position: fixed; z-index: 99999; display: none;
+      background: #fff; border: 1.5px solid #e0e0e0; border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.14); max-height: 220px; overflow-y: auto; min-width: 190px;
+    }
+    .tel-dropdown-opt {
+      padding: 9px 14px; cursor: pointer; font-size: 13px;
+      display: flex; align-items: center; gap: 10px; white-space: nowrap;
+    }
+    .tel-dropdown-opt:hover { background: #f5f5f5; }
+    .tel-opt-flag { font-size: 18px; line-height: 1; }
+    .tel-opt-name { flex: 1; color: #333; font-family: var(--font); }
+    .tel-opt-code { color: #999; font-size: 12px; }
     .form-tel-sm .form-input-sm { border-radius: 0 7px 7px 0; }
 
     @media (max-width: 960px) {
@@ -1700,7 +1715,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="hsplit-fields">
         <input class="form-input-sm" type="text" id="nome" name="nome" placeholder="Nome completo" required autocomplete="name" maxlength="150" />
         <div class="form-tel-sm">
-          <div class="form-tel-pre-sm">🇵🇹 +351</div>
+          <div class="tel-country-picker"><span class="tel-flag">🇵🇹</span><span class="tel-caret">▾</span></div>
           <input class="form-input-sm" type="tel" id="tel" name="tel" placeholder="Telemóvel" required autocomplete="tel" inputmode="tel" maxlength="20" />
         </div>
         <input class="form-input-sm" type="email" id="email" name="email" placeholder="E-mail" required autocomplete="email" maxlength="254" />
@@ -2779,7 +2794,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <input class="form-input-sm" type="text" id="popup-nome" name="nome" placeholder="Nome completo" required autocomplete="name" maxlength="150" />
 
       <div class="form-tel-sm">
-        <div class="form-tel-pre-sm">🇵🇹 +351</div>
+        <div class="tel-country-picker"><span class="tel-flag">🇵🇹</span><span class="tel-caret">▾</span></div>
         <input class="form-input-sm" type="tel" id="popup-tel" name="tel" placeholder="Telemóvel" required autocomplete="tel" inputmode="tel" maxlength="20" />
       </div>
 
@@ -3467,6 +3482,96 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
     }
   };
+})();
+</script>
+
+<script>
+(function() {
+  var countries = [
+    { flag: '🇵🇹', name: 'Portugal', code: '+351' },
+    { flag: '🇦🇴', name: 'Angola', code: '+244' },
+    { flag: '🇲🇿', name: 'Moçambique', code: '+258' },
+    { flag: '🇪🇸', name: 'Espanha', code: '+34' },
+    { flag: '🇫🇷', name: 'França', code: '+33' },
+    { flag: '🇬🇧', name: 'Reino Unido', code: '+44' },
+    { flag: '🇩🇪', name: 'Alemanha', code: '+49' },
+    { flag: '🇧🇷', name: 'Brasil', code: '+55' },
+    { flag: '🇮🇹', name: 'Itália', code: '+39' },
+    { flag: '🇳🇱', name: 'Países Baixos', code: '+31' },
+    { flag: '🇧🇪', name: 'Bélgica', code: '+32' },
+    { flag: '🇨🇭', name: 'Suíça', code: '+41' },
+    { flag: '🇸🇪', name: 'Suécia', code: '+46' },
+    { flag: '🇳🇴', name: 'Noruega', code: '+47' },
+    { flag: '🇩🇰', name: 'Dinamarca', code: '+45' },
+    { flag: '🇫🇮', name: 'Finlândia', code: '+358' },
+    { flag: '🇮🇪', name: 'Irlanda', code: '+353' },
+    { flag: '🇺🇸', name: 'EUA', code: '+1' },
+  ];
+
+  var activeDropdown = null;
+
+  function buildDropdown() {
+    var panel = document.createElement('div');
+    panel.className = 'tel-dropdown';
+    countries.forEach(function(c) {
+      var row = document.createElement('div');
+      row.className = 'tel-dropdown-opt';
+      row.innerHTML =
+        '<span class="tel-opt-flag">' + c.flag + '</span>' +
+        '<span class="tel-opt-name">' + c.name + '</span>' +
+        '<span class="tel-opt-code">' + c.code + '</span>';
+      panel.appendChild(row);
+    });
+    document.body.appendChild(panel);
+    return panel;
+  }
+
+  function initPicker(picker) {
+    var flagEl = picker.querySelector('.tel-flag');
+    var panel = buildDropdown();
+    var isOpen = false;
+
+    function open() {
+      if (activeDropdown && activeDropdown !== panel) activeDropdown.style.display = 'none';
+      var rect = picker.getBoundingClientRect();
+      panel.style.top = (rect.bottom + 4) + 'px';
+      panel.style.left = rect.left + 'px';
+      panel.style.display = 'block';
+      isOpen = true;
+      activeDropdown = panel;
+    }
+
+    function close() {
+      panel.style.display = 'none';
+      isOpen = false;
+      if (activeDropdown === panel) activeDropdown = null;
+    }
+
+    picker.addEventListener('click', function(e) {
+      e.stopPropagation();
+      isOpen ? close() : open();
+    });
+
+    panel.querySelectorAll('.tel-dropdown-opt').forEach(function(row, i) {
+      row.addEventListener('click', function(e) {
+        e.stopPropagation();
+        flagEl.textContent = countries[i].flag;
+        close();
+      });
+    });
+
+    document.addEventListener('click', function() { if (isOpen) close(); });
+    window.addEventListener('scroll', function() { if (isOpen) close(); }, true);
+    window.addEventListener('resize', function() { if (isOpen) open(); });
+  }
+
+  function init() {
+    document.querySelectorAll('.tel-country-picker').forEach(initPicker);
+  }
+
+  document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', init)
+    : init();
 })();
 </script>
 
