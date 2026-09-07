@@ -3912,16 +3912,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       try {
         var result = await placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions({
-          input:                q,
-          sessionToken:         token,
-          includedPrimaryTypes: ['address'],
-          includedRegionCodes:  ['pt'],
-          language:             'pt',
+          input:               q,
+          sessionToken:        token,
+          includedRegionCodes: ['pt'],
+          language:            'pt',
         });
         if (input.value.trim() !== q) return; /* discard stale response */
         render(result.suggestions || []);
       } catch (e) {
-        console.warn('[Places] suggestions error:', e);
+        console.error('[Places] suggestions error:', e.message || e);
         closeDropdown();
       }
     }
