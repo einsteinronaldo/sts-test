@@ -1532,6 +1532,15 @@
     }
     .address-hint-btn:hover { opacity: 1; }
 
+    /* ── ADDRESS EXTRA FIELDS (número / código postal quando Google não devolve) ── */
+    .address-extras { display: none; flex-direction: row; gap: 6px; margin-top: 2px; }
+    .address-extras.is-visible { display: flex; }
+    .address-extra-field { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .address-extra-label {
+      font-size: 10px; font-weight: 700; color: #aaa;
+      letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--font);
+    }
+
   </style>
 </head>
 <body>
@@ -1663,6 +1672,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               aria-label="Sugestões de morada" hidden></ul>
           </div>
           <p class="address-hint" id="morada-hint">Não encontra a sua morada?&nbsp;<button type="button" class="address-hint-btn" id="morada-manual-btn">Introduza-a manualmente</button></p>
+          <div class="address-extras" id="morada-extras">
+            <div class="address-extra-field" id="morada-extra-number" style="display:none">
+              <label class="address-extra-label" for="morada-number-input">Número da porta</label>
+              <input class="form-input-sm" type="text" id="morada-number-input"
+                placeholder="Ex.: 34" autocomplete="off" maxlength="20" inputmode="text" />
+            </div>
+            <div class="address-extra-field" id="morada-extra-postal" style="display:none">
+              <label class="address-extra-label" for="morada-postal-input">Código postal</label>
+              <input class="form-input-sm" type="text" id="morada-postal-input"
+                placeholder="Ex.: 4450-123" autocomplete="off" maxlength="10" inputmode="text" />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2755,6 +2776,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             aria-label="Sugestões de morada" hidden></ul>
         </div>
         <p class="address-hint" id="popup-morada-hint">Não encontra a sua morada?&nbsp;<button type="button" class="address-hint-btn" id="popup-morada-manual-btn">Introduza-a manualmente</button></p>
+        <div class="address-extras" id="popup-morada-extras">
+          <div class="address-extra-field" id="popup-morada-extra-number" style="display:none">
+            <label class="address-extra-label" for="popup-morada-number-input">Número da porta</label>
+            <input class="form-input-sm" type="text" id="popup-morada-number-input"
+              placeholder="Ex.: 34" autocomplete="off" maxlength="20" inputmode="text" />
+          </div>
+          <div class="address-extra-field" id="popup-morada-extra-postal" style="display:none">
+            <label class="address-extra-label" for="popup-morada-postal-input">Código postal</label>
+            <input class="form-input-sm" type="text" id="popup-morada-postal-input"
+              placeholder="Ex.: 4450-123" autocomplete="off" maxlength="10" inputmode="text" />
+          </div>
+        </div>
       </div>
 
       <input class="form-input-sm" type="text" id="popup-nome" name="nome" placeholder="Nome completo" required autocomplete="name" maxlength="150" />
@@ -3690,11 +3723,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     '<circle cx="12" cy="10" r="3"/></svg>';
 
   /* ── Field initialiser ───────────────────────────────────────── */
-  function initField(inputId, dropdownId, manualBtnId, hintId) {
-    var input     = document.getElementById(inputId);
-    var dropdown  = document.getElementById(dropdownId);
-    var manualBtn = document.getElementById(manualBtnId);
-    var hintEl    = document.getElementById(hintId);
+  function initField(inputId, dropdownId, manualBtnId, hintId,
+                     extrasId, extraNumWrapId, extraPostWrapId,
+                     extraNumInputId, extraPostInputId) {
+    var input          = document.getElementById(inputId);
+    var dropdown       = document.getElementById(dropdownId);
+    var manualBtn      = document.getElementById(manualBtnId);
+    var hintEl         = document.getElementById(hintId);
+    var extrasEl       = document.getElementById(extrasId);
+    var extraNumWrap   = document.getElementById(extraNumWrapId);
+    var extraPostWrap  = document.getElementById(extraPostWrapId);
+    var extraNumInput  = document.getElementById(extraNumInputId);
+    var extraPostInput = document.getElementById(extraPostInputId);
 
     if (!input || !dropdown) return;
 
@@ -3707,6 +3747,37 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     var isManual       = false;
     var googleSelected = false;
 
+    /* ── Show/hide extra fields based on what Google returned ──── */
+    function showExtras() {
+      if (!extrasEl) return;
+      var needNum  = !st.number;
+      var needPost = !st.postalCode;
+      if (extraNumWrap)  extraNumWrap.style.display  = needNum  ? '' : 'none';
+      if (extraPostWrap) extraPostWrap.style.display = needPost ? '' : 'none';
+      extrasEl.classList.toggle('is-visible', needNum || needPost);
+    }
+
+    function hideExtras() {
+      if (!extrasEl) return;
+      extrasEl.classList.remove('is-visible');
+      if (extraNumWrap)  extraNumWrap.style.display  = 'none';
+      if (extraPostWrap) extraPostWrap.style.display = 'none';
+      if (extraNumInput)  extraNumInput.value  = '';
+      if (extraPostInput) extraPostInput.value = '';
+    }
+
+    /* Wire up extra field inputs — update state without touching source/placeId/lat/lng */
+    if (extraNumInput) {
+      extraNumInput.addEventListener('input', function () {
+        st.number = extraNumInput.value.trim();
+      });
+    }
+    if (extraPostInput) {
+      extraPostInput.addEventListener('input', function () {
+        st.postalCode = extraPostInput.value.trim();
+      });
+    }
+
     /* ── Manual mode ──── */
     function enterManual() {
       isManual = true;
@@ -3714,6 +3785,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       googleSelected = false;
       input.setAttribute('autocomplete', 'street-address');
       closeDropdown();
+      hideExtras();
       if (hintEl) hintEl.style.display = 'none';
     }
 
@@ -3844,9 +3916,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         /* Refresh session token — billing session ends after fetchFields */
         token = new placesLib.AutocompleteSessionToken();
 
+        /* Show extra fields for any missing components */
+        showExtras();
+
       } catch (e) {
         console.warn('[Places] fetchFields error:', e);
         st.source = 'manual';
+        hideExtras();
       }
     }
 
@@ -3884,6 +3960,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       if (googleSelected) {
         clearGoogleFields(st);
         googleSelected = false;
+        hideExtras();
       }
       st.input = input.value;
 
@@ -3938,8 +4015,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       console.warn('[Places] Maps failed — autocomplete disabled, manual input active.');
       return;
     }
-    initField('morada',       'morada-dropdown',       'morada-manual-btn',       'morada-hint');
-    initField('popup-morada', 'popup-morada-dropdown', 'popup-morada-manual-btn', 'popup-morada-hint');
+    initField('morada',       'morada-dropdown',       'morada-manual-btn',       'morada-hint',
+              'morada-extras',       'morada-extra-number',       'morada-extra-postal',
+              'morada-number-input', 'morada-postal-input');
+    initField('popup-morada', 'popup-morada-dropdown', 'popup-morada-manual-btn', 'popup-morada-hint',
+              'popup-morada-extras', 'popup-morada-extra-number', 'popup-morada-extra-postal',
+              'popup-morada-number-input', 'popup-morada-postal-input');
   }
 
   document.readyState === 'loading'
