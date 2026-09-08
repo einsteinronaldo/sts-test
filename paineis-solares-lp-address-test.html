@@ -2976,8 +2976,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     var rawMorada       = String(formData.get('morada') || '').trim();
     var addressFormatted = addrSt.formatted || rawMorada;
 
-    var extraNumAdded  = finalNumber && !addrSt.number;
-    var extraPostAdded = finalPostal && !addrSt.postalCode;
+    /* Detect if user added number/postal manually via extra fields.
+       The extra field wrapper is only visible when Google didn't return that component.
+       Using DOM visibility avoids the false-negative caused by the listener already
+       having updated st.number/st.postalCode before createPayload runs. */
+    var extraNumFieldEl  = extraNumEl  ? extraNumEl.closest('.address-extra-field')  : null;
+    var extraPostFieldEl = extraPostEl ? extraPostEl.closest('.address-extra-field') : null;
+    var extraNumAdded    = !!(extraNumFieldEl  && extraNumFieldEl.style.display  !== 'none' && extraNumVal);
+    var extraPostAdded   = !!(extraPostFieldEl && extraPostFieldEl.style.display !== 'none' && extraPostVal);
 
     if (addrSt.source === 'google_autocomplete' && (extraNumAdded || extraPostAdded)) {
       var _s = addrSt.street || '';
