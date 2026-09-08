@@ -1676,12 +1676,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="address-extra-field" id="morada-extra-number" style="display:none">
               <label class="address-extra-label" for="morada-number-input">Número da porta</label>
               <input class="form-input-sm" type="text" id="morada-number-input"
-                placeholder="Ex.: 34" autocomplete="off" maxlength="20" inputmode="text" />
+                placeholder="Ex.: 34" autocomplete="off" maxlength="20" inputmode="text"
+                data-addr-extra="number" />
             </div>
             <div class="address-extra-field" id="morada-extra-postal" style="display:none">
               <label class="address-extra-label" for="morada-postal-input">Código postal</label>
               <input class="form-input-sm" type="text" id="morada-postal-input"
-                placeholder="Ex.: 4450-123" autocomplete="off" maxlength="10" inputmode="text" />
+                placeholder="Ex.: 4450-123" autocomplete="off" maxlength="10" inputmode="text"
+                data-addr-extra="postal" />
             </div>
           </div>
         </div>
@@ -2780,12 +2782,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="address-extra-field" id="popup-morada-extra-number" style="display:none">
             <label class="address-extra-label" for="popup-morada-number-input">Número da porta</label>
             <input class="form-input-sm" type="text" id="popup-morada-number-input"
-              placeholder="Ex.: 34" autocomplete="off" maxlength="20" inputmode="text" />
+              placeholder="Ex.: 34" autocomplete="off" maxlength="20" inputmode="text"
+              data-addr-extra="number" />
           </div>
           <div class="address-extra-field" id="popup-morada-extra-postal" style="display:none">
             <label class="address-extra-label" for="popup-morada-postal-input">Código postal</label>
             <input class="form-input-sm" type="text" id="popup-morada-postal-input"
-              placeholder="Ex.: 4450-123" autocomplete="off" maxlength="10" inputmode="text" />
+              placeholder="Ex.: 4450-123" autocomplete="off" maxlength="10" inputmode="text"
+              data-addr-extra="postal" />
           </div>
         </div>
       </div>
@@ -2955,6 +2959,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                      ? (window.__addrState.get(moradaEl.id) || {})
                      : {};
 
+    /* Fallback: read extra fields directly from the form's DOM inputs.
+       Covers the case where Maps failed and no listeners were attached. */
+    var extraNumEl   = form.querySelector('[data-addr-extra="number"]');
+    var extraPostEl  = form.querySelector('[data-addr-extra="postal"]');
+    var extraNumVal  = extraNumEl  ? String(extraNumEl.value  || '').trim() : '';
+    var extraPostVal = extraPostEl ? String(extraPostEl.value || '').trim() : '';
+
     var eventId =
       storageGet('meta_pending_event_id') ||
       createEventId();
@@ -2991,8 +3002,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       address_input:        addrSt.input        || String(formData.get('morada') || '').trim(),
       address_formatted:    addrSt.formatted    || '',
       address_street:       addrSt.street       || '',
-      address_number:       addrSt.number       || '',
-      address_postal_code:  addrSt.postalCode   || '',
+      address_number:       addrSt.number     || extraNumVal  || '',
+      address_postal_code:  addrSt.postalCode || extraPostVal || '',
       address_locality:     addrSt.locality     || '',
       address_municipality: addrSt.municipality || '',
       address_district:     addrSt.district     || '',
@@ -3086,6 +3097,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     button.textContent = sendingText;
 
     var payload = createPayload(form);
+
+    console.log('[ADDRESS PAYLOAD]', {
+      address_number:      payload.address_number,
+      address_postal_code: payload.address_postal_code,
+      address_formatted:   payload.address_formatted,
+      address_source:      payload.address_source
+    });
 
     if (!payload['cf-turnstile-response']) {
       showError(
@@ -3737,6 +3755,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     var extraPostInput = document.getElementById(extraPostInputId);
 
     if (!input || !dropdown) return;
+
+    /* Move dropdown to <body> so position:fixed is relative to viewport,
+       not to a transformed/backdrop-filter ancestor (e.g. .popup-card). */
+    if (dropdown.parentElement !== document.body) {
+      document.body.appendChild(dropdown);
+    }
 
     var st       = emptyState(inputId);
     window.__addrState.set(inputId, st);
