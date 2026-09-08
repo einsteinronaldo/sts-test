@@ -2966,6 +2966,34 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     var extraNumVal  = extraNumEl  ? String(extraNumEl.value  || '').trim() : '';
     var extraPostVal = extraPostEl ? String(extraPostEl.value || '').trim() : '';
 
+    /* Final number/postal: state wins, DOM input is fallback */
+    var finalNumber = addrSt.number     || extraNumVal  || '';
+    var finalPostal = addrSt.postalCode || extraPostVal || '';
+
+    /* Build a complete address string that incorporates manually entered
+       number/postal into address_formatted and morada when Google didn't
+       return those components. */
+    var rawMorada       = String(formData.get('morada') || '').trim();
+    var addressFormatted = addrSt.formatted || rawMorada;
+
+    var extraNumAdded  = finalNumber && !addrSt.number;
+    var extraPostAdded = finalPostal && !addrSt.postalCode;
+
+    if (addrSt.source === 'google_autocomplete' && (extraNumAdded || extraPostAdded)) {
+      var _s = addrSt.street || '';
+      if (_s && finalNumber)        _s = _s + ' ' + finalNumber;
+      else if (!_s && finalNumber)  _s = finalNumber;
+
+      var _l = (finalPostal && addrSt.locality)  ? finalPostal + ' ' + addrSt.locality
+             : finalPostal                        ? finalPostal
+             : addrSt.locality                    ? addrSt.locality
+             :                                      '';
+
+      addressFormatted = [_s, _l, addrSt.municipality, addrSt.district, addrSt.country]
+        .filter(function (p) { return p && p.trim(); })
+        .join(', ');
+    }
+
     var eventId =
       storageGet('meta_pending_event_id') ||
       createEventId();
@@ -2995,15 +3023,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       email:   String(formData.get('email')   || '').trim(),
       gasto:   String(formData.get('gasto')   || '').trim(),
       prazo:   String(formData.get('prazo')   || '').trim(),
-      morada:  String(formData.get('morada')  || '').trim(),
+      morada:  addressFormatted || rawMorada,
       website: String(formData.get('website') || '').trim(),
 
       /* Address autocomplete breakdown */
-      address_input:        addrSt.input        || String(formData.get('morada') || '').trim(),
-      address_formatted:    addrSt.formatted    || '',
+      address_input:        addrSt.input        || rawMorada,
+      address_formatted:    addressFormatted,
       address_street:       addrSt.street       || '',
-      address_number:       addrSt.number     || extraNumVal  || '',
-      address_postal_code:  addrSt.postalCode || extraPostVal || '',
+      address_number:       finalNumber,
+      address_postal_code:  finalPostal,
       address_locality:     addrSt.locality     || '',
       address_municipality: addrSt.municipality || '',
       address_district:     addrSt.district     || '',
