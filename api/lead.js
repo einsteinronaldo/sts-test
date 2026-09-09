@@ -391,6 +391,100 @@ function markProcessed(eventId, response) {
 
 
 /*
+ * ─── UPSTASH REDIS — DEDUPLICAÇÃO PERSISTENTE 30 DIAS ─────────────────────
+ * Verifica telefone OU email nos últimos 30 dias.
+ * Usa script Lua atómico para evitar race conditions.
+ * Fail-open: se Redis indisponível, a lead passa sem bloquear.
+ */
+var DEDUP_RESERVE_TTL_S = 120;      // reserva temporária: 2 minutos
+var DEDUP_CONFIRM_TTL_S = 2592000;  // TTL final: 30 dias
+
+/*
+ * Lua — reserva atómica com ownership token.
+ * Guarda o token em vez de "1" para que confirm/release
+ * possam verificar que a chave ainda pertence a esta request.
+ * ARGV[1] = TTL (120s), ARGV[2] = reservationToken
+ */
+var LUA_CHECK_AND_RESERVE =
+  'if redis.call("EXISTS",KEYS[1])==1 then return "duplicate" end\n' +
+  'if redis.call("EXISTS",KEYS[2])==1 then return "duplicate" end\n' +
+  'redis.call("SET",KEYS[1],ARGV[2],"EX",ARGV[1])\n' +
+  'redis.call("SET",KEYS[2],ARGV[2],"EX",ARGV[1])\n' +
+  'return "ok"';
+
+/*
+ * Lua — confirma TTL de 30 dias só se o valor ainda for o token desta request.
+ * ARGV[1] = TTL (2592000s), ARGV[2] = reservationToken
+ */
+var LUA_CONFIRM =
+  'local t=ARGV[2]\n' +
+  'local c=0\n' +
+  'if redis.call("GET",KEYS[1])==t then redis.call("EXPIRE",KEYS[1],ARGV[1]) c=c+1 end\n' +
+  'if redis.call("GET",KEYS[2])==t then redis.call("EXPIRE",KEYS[2],ARGV[1]) c=c+1 end\n' +
+  'return c';
+
+/*
+ * Lua — apaga reserva só se o valor ainda for o token desta request.
+ * ARGV[1] = reservationToken
+ */
+var LUA_RELEASE =
+  'local t=ARGV[1]\n' +
+  'local r=0\n' +
+  'if redis.call("GET",KEYS[1])==t then redis.call("DEL",KEYS[1]) r=r+1 end\n' +
+  'if redis.call("GET",KEYS[2])==t then redis.call("DEL",KEYS[2]) r=r+1 end\n' +
+  'return r';
+
+async function upstashPost(path, body) {
+  var base = (process.env.UPSTASH_REDIS_REST_URL || '').replace(/\/$/, '');
+  var token = (process.env.UPSTASH_REDIS_REST_TOKEN || '').trim();
+  if (!base || !token) {
+    throw new Error('UPSTASH_REDIS_REST_URL ou UPSTASH_REDIS_REST_TOKEN não configurados.');
+  }
+  var resp = await fetchWithTimeout(
+    base + path,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    },
+    5000
+  );
+  if (!resp.ok) {
+    throw new Error('Upstash Redis devolveu HTTP ' + resp.status);
+  }
+  return await resp.json();
+}
+
+async function checkAndReserve(telKey, emailKey, reservationToken) {
+  var r = await upstashPost('', [
+    'EVAL', LUA_CHECK_AND_RESERVE, 2, telKey, emailKey, DEDUP_RESERVE_TTL_S, reservationToken
+  ]);
+  return r.result; // 'ok' ou 'duplicate'
+}
+
+async function confirmDedupKeys(telKey, emailKey, reservationToken) {
+  var r = await upstashPost('', [
+    'EVAL', LUA_CONFIRM, 2, telKey, emailKey, DEDUP_CONFIRM_TTL_S, reservationToken
+  ]);
+  if (r.result < 2) {
+    console.warn('[Dedup] Confirmação parcial:', r.result, '/2 chaves (reserva pode ter expirado antes do GHL responder).');
+  }
+}
+
+async function releaseDedupKeys(telKey, emailKey, reservationToken) {
+  var r = await upstashPost('', [
+    'EVAL', LUA_RELEASE, 2, telKey, emailKey, reservationToken
+  ]);
+  if (r.result < 2) {
+    console.warn('[Dedup] Libertação parcial:', r.result, '/2 chaves (reserva expirou ou pertencia a outra request).');
+  }
+}
+
+
+/*
  * ─── CLOUDFLARE TURNSTILE ──────────────────────────────────────────────────
  * Valida o token gerado pelo widget no browser.
  */
@@ -1065,6 +1159,33 @@ export default {
     }
 
     /*
+     * Deduplicação persistente (Redis / 30 dias).
+     * Verifica telefone OU email já registado.
+     * Fail-open: erros Redis não bloqueiam leads válidas.
+     */
+    var telKey           = 'lead:tel:'   + phone.replace(/^\+351/, '');
+    var emailKey         = 'lead:email:' + email;
+    var reservationToken = randomUUID();
+    var dedupReserved    = false;
+
+    try {
+      var dedupCheck = await checkAndReserve(telKey, emailKey, reservationToken);
+      if (dedupCheck === 'duplicate') {
+        console.log('[Dedup] Lead duplicada (tel ou email já registado nos últimos 30 dias).');
+        return json({
+          ok: true,
+          lead_quality: 'duplicate',
+          redirect_url: '/sucesso-3',
+          event_id: null,
+          meta_server_sent: false
+        });
+      }
+      dedupReserved = true;
+    } catch (redisErr) {
+      console.error('[Dedup] Redis indisponível — fail-open:', redisErr.message || String(redisErr));
+    }
+
+    /*
      * Dados enviados para o webhook
      * do GoHighLevel.
      */
@@ -1208,6 +1329,10 @@ export default {
         error
       );
 
+      if (dedupReserved) {
+        try { await releaseDedupKeys(telKey, emailKey, reservationToken); } catch (e) { console.error('[Dedup] Falha ao libertar reserva:', e.message || e); }
+      }
+
       return json(
         {
           ok: false,
@@ -1234,6 +1359,10 @@ export default {
         ghlErrorText
       );
 
+      if (dedupReserved) {
+        try { await releaseDedupKeys(telKey, emailKey, reservationToken); } catch (e) { console.error('[Dedup] Falha ao libertar reserva:', e.message || e); }
+      }
+
       return json(
         {
           ok: false,
@@ -1242,6 +1371,13 @@ export default {
         },
         502
       );
+    }
+
+    /*
+     * GHL processou com sucesso — confirmar no Redis com TTL de 30 dias.
+     */
+    if (dedupReserved) {
+      try { await confirmDedupKeys(telKey, emailKey, reservationToken); } catch (e) { console.error('[Dedup] Falha ao confirmar deduplicação:', e.message || e); }
     }
 
     var metaServerSent = false;
