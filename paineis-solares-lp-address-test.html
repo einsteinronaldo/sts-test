@@ -1541,6 +1541,10 @@
       letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--font);
     }
 
+    /* ── ADDRESS MANUAL MODE ──────────────────────────────────────── */
+    .address-manual-fields { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+    .address-inline-error { font-size: 12px; color: var(--accent); margin-top: 2px; line-height: 1.4; display: none; }
+
   </style>
 </head>
 <body>
@@ -1684,6 +1688,47 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <input class="form-input-sm" type="text" id="morada-postal-input"
                 placeholder="Ex.: 4450-123" autocomplete="off" maxlength="10" inputmode="text"
                 data-addr-extra="postal" />
+            </div>
+          </div>
+          <p class="address-inline-error" id="morada-addr-error" style="display:none"></p>
+          <div class="address-manual-fields" id="morada-manual-fields" style="display:none">
+            <div class="address-extras is-visible" style="margin-top:0">
+              <div class="address-extra-field">
+                <label class="address-extra-label" for="morada-manual-number">Nº da porta</label>
+                <input class="form-input-sm" type="text" id="morada-manual-number"
+                  placeholder="Ex.: 34" autocomplete="off" maxlength="20" inputmode="text" />
+              </div>
+              <div class="address-extra-field">
+                <label class="address-extra-label" for="morada-manual-postal">Código postal</label>
+                <input class="form-input-sm" type="text" id="morada-manual-postal"
+                  placeholder="Ex.: 4450-123" autocomplete="postal-code" maxlength="10" inputmode="text" />
+              </div>
+            </div>
+            <div class="address-extra-field" style="flex:none">
+              <label class="address-extra-label" for="morada-manual-district">Distrito</label>
+              <select class="form-select-sm" id="morada-manual-district">
+                <option value="">Selecionar distrito</option>
+                <option>Aveiro</option>
+                <option>Beja</option>
+                <option>Braga</option>
+                <option>Bragança</option>
+                <option>Castelo Branco</option>
+                <option>Coimbra</option>
+                <option>Évora</option>
+                <option>Faro</option>
+                <option>Guarda</option>
+                <option>Leiria</option>
+                <option>Lisboa</option>
+                <option>Portalegre</option>
+                <option>Porto</option>
+                <option>Santarém</option>
+                <option>Setúbal</option>
+                <option>Viana do Castelo</option>
+                <option>Vila Real</option>
+                <option>Viseu</option>
+                <option>Região Autónoma dos Açores</option>
+                <option>Região Autónoma da Madeira</option>
+              </select>
             </div>
           </div>
         </div>
@@ -2792,6 +2837,47 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               data-addr-extra="postal" />
           </div>
         </div>
+        <p class="address-inline-error" id="popup-morada-addr-error" style="display:none"></p>
+        <div class="address-manual-fields" id="popup-morada-manual-fields" style="display:none">
+          <div class="address-extras is-visible" style="margin-top:0">
+            <div class="address-extra-field">
+              <label class="address-extra-label" for="popup-morada-manual-number">Nº da porta</label>
+              <input class="form-input-sm" type="text" id="popup-morada-manual-number"
+                placeholder="Ex.: 34" autocomplete="off" maxlength="20" inputmode="text" />
+            </div>
+            <div class="address-extra-field">
+              <label class="address-extra-label" for="popup-morada-manual-postal">Código postal</label>
+              <input class="form-input-sm" type="text" id="popup-morada-manual-postal"
+                placeholder="Ex.: 4450-123" autocomplete="postal-code" maxlength="10" inputmode="text" />
+            </div>
+          </div>
+          <div class="address-extra-field" style="flex:none">
+            <label class="address-extra-label" for="popup-morada-manual-district">Distrito</label>
+            <select class="form-select-sm" id="popup-morada-manual-district">
+              <option value="">Selecionar distrito</option>
+              <option>Aveiro</option>
+              <option>Beja</option>
+              <option>Braga</option>
+              <option>Bragança</option>
+              <option>Castelo Branco</option>
+              <option>Coimbra</option>
+              <option>Évora</option>
+              <option>Faro</option>
+              <option>Guarda</option>
+              <option>Leiria</option>
+              <option>Lisboa</option>
+              <option>Portalegre</option>
+              <option>Porto</option>
+              <option>Santarém</option>
+              <option>Setúbal</option>
+              <option>Viana do Castelo</option>
+              <option>Vila Real</option>
+              <option>Viseu</option>
+              <option>Região Autónoma dos Açores</option>
+              <option>Região Autónoma da Madeira</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <input class="form-input-sm" type="text" id="popup-nome" name="nome" placeholder="Nome completo" required autocomplete="name" maxlength="150" />
@@ -2959,46 +3045,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                      ? (window.__addrState.get(moradaEl.id) || {})
                      : {};
 
-    /* Fallback: read extra fields directly from the form's DOM inputs.
-       Covers the case where Maps failed and no listeners were attached. */
-    var extraNumEl   = form.querySelector('[data-addr-extra="number"]');
-    var extraPostEl  = form.querySelector('[data-addr-extra="postal"]');
-    var extraNumVal  = extraNumEl  ? String(extraNumEl.value  || '').trim() : '';
-    var extraPostVal = extraPostEl ? String(extraPostEl.value || '').trim() : '';
+    var rawMorada = String(formData.get('morada') || '').trim();
 
-    /* Final number/postal: state wins, DOM input is fallback */
-    var finalNumber = addrSt.number     || extraNumVal  || '';
-    var finalPostal = addrSt.postalCode || extraPostVal || '';
+    /* Build formatted address from structured state — deduplicates components */
+    var addressFormatted = (typeof window.buildFormattedAddress === 'function')
+      ? (window.buildFormattedAddress(addrSt) || rawMorada)
+      : rawMorada;
 
-    /* Build a complete address string that incorporates manually entered
-       number/postal into address_formatted and morada when Google didn't
-       return those components. */
-    var rawMorada       = String(formData.get('morada') || '').trim();
-    var addressFormatted = addrSt.formatted || rawMorada;
-
-    /* Detect if user added number/postal manually via extra fields.
-       The extra field wrapper is only visible when Google didn't return that component.
-       Using DOM visibility avoids the false-negative caused by the listener already
-       having updated st.number/st.postalCode before createPayload runs. */
-    var extraNumFieldEl  = extraNumEl  ? extraNumEl.closest('.address-extra-field')  : null;
-    var extraPostFieldEl = extraPostEl ? extraPostEl.closest('.address-extra-field') : null;
-    var extraNumAdded    = !!(extraNumFieldEl  && extraNumFieldEl.style.display  !== 'none' && extraNumVal);
-    var extraPostAdded   = !!(extraPostFieldEl && extraPostFieldEl.style.display !== 'none' && extraPostVal);
-
-    if (addrSt.source === 'google_autocomplete' && (extraNumAdded || extraPostAdded)) {
-      var _s = addrSt.street || '';
-      if (_s && finalNumber)        _s = _s + ' ' + finalNumber;
-      else if (!_s && finalNumber)  _s = finalNumber;
-
-      var _l = (finalPostal && addrSt.locality)  ? finalPostal + ' ' + addrSt.locality
-             : finalPostal                        ? finalPostal
-             : addrSt.locality                    ? addrSt.locality
-             :                                      '';
-
-      addressFormatted = [_s, _l, addrSt.municipality, addrSt.district, addrSt.country]
-        .filter(function (p) { return p && p.trim(); })
-        .join(', ');
-    }
+    var finalNumber = addrSt.number     || '';
+    var finalPostal = addrSt.postalCode || '';
 
     var eventId =
       storageGet('meta_pending_event_id') ||
@@ -3097,6 +3152,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     function hideError() {
       errorBox.textContent = '';
       errorBox.style.display = 'none';
+      var _addrErr = form.querySelector('.address-inline-error');
+      if (_addrErr) { _addrErr.textContent = ''; _addrErr.style.display = 'none'; }
     }
 
     function showError(message) {
@@ -3115,6 +3172,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (rgpdCb && !rgpdCb.checked) {
       showError('Para continuar, aceita os Termos e Condições e a Política de Privacidade.');
       return;
+    }
+
+    /* ── Address validation ─────────────────────────────────────── */
+    var _addrInputEl = form.querySelector('[name="morada"]');
+    if (_addrInputEl && window.__addrState) {
+      var _addrSt = window.__addrState.get(_addrInputEl.id);
+      if (_addrSt && typeof _addrSt.validate === 'function') {
+        var _addrChk = _addrSt.validate();
+        if (!_addrChk.ok) {
+          var _addrInlineErr = form.querySelector('.address-inline-error');
+          if (_addrInlineErr) { _addrInlineErr.textContent = _addrChk.error; _addrInlineErr.style.display = 'block'; }
+          showError(_addrChk.error);
+          return;
+        }
+      }
     }
 
     if (!form.reportValidity()) {
@@ -3744,6 +3816,66 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     return found ? (found.longText || '') : '';
   }
 
+  /* ── Normalize Portuguese postal code: XXXX-XXX or 7 digits ──── */
+  function normalizePostal(s) {
+    var raw = String(s || '').trim();
+    if (/^\d{4}-\d{3}$/.test(raw)) return raw;
+    var digits = raw.replace(/\D/g, '');
+    if (digits.length === 7) return digits.slice(0, 4) + '-' + digits.slice(4);
+    return null;
+  }
+
+  /* ── Extract postal code embedded in freeform text ──────────── */
+  function extractPostalFromText(text) {
+    var s = String(text || '');
+    var m = s.match(/\b(\d{4}-\d{3})\b/);
+    if (m) return m[1];
+    var m2 = s.match(/\b(\d{7})\b/);
+    if (m2) return m2[1].slice(0, 4) + '-' + m2[1].slice(4);
+    return null;
+  }
+
+  /* ── Build formatted address — deduplicates components case-insensitively */
+  window.buildFormattedAddress = function (st) {
+    if (!st) return '';
+    var parts = [];
+    var seen  = {};
+
+    function add(val) {
+      if (!val || !val.trim()) return;
+      var k = val.trim().toLowerCase();
+      if (!seen[k]) { seen[k] = true; parts.push(val.trim()); }
+    }
+
+    /* Street + number on one line */
+    var streetLine = [st.street, st.number]
+      .filter(function (s) { return s && s.trim(); })
+      .join(' ');
+    if (streetLine) { parts.push(streetLine); seen[streetLine.toLowerCase()] = true; }
+
+    /* Postal code + locality on one line */
+    if (st.postalCode && st.locality && st.locality.trim()) {
+      var localLine = st.postalCode + ' ' + st.locality.trim();
+      parts.push(localLine);
+      seen[st.locality.trim().toLowerCase()] = true;
+    } else if (st.postalCode) {
+      parts.push(st.postalCode);
+    } else if (st.locality) {
+      add(st.locality);
+    }
+
+    /* Municipality — skipped if same as locality or district */
+    add(st.municipality);
+
+    /* District — skipped if same as locality or municipality */
+    add(st.district);
+
+    /* Country always last */
+    if (st.country && st.country.trim()) parts.push(st.country.trim());
+
+    return parts.join(', ');
+  };
+
   function emptyState(id) {
     return {
       id: id, source: 'manual', input: '', formatted: '',
@@ -3767,17 +3899,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     dropdown.style.width = r.width + 'px';
   }
 
-  /* ── Pin icon (inline SVG, no emoji for cross-platform safety) ── */
+  /* ── Pin icon ──────────────────────────────────────────────── */
   var PIN = '<svg class="address-sugg-icon" width="13" height="13" viewBox="0 0 24 24"' +
     ' fill="none" stroke="#E8380A" stroke-width="2.5" stroke-linecap="round"' +
     ' stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>' +
     '<circle cx="12" cy="10" r="3"/></svg>';
 
-  /* ── Field initialiser ───────────────────────────────────────── */
+  /* ── Field initialiser ──────────────────────────────────────── */
   function initField(inputId, dropdownId, manualBtnId, hintId,
                      extrasId, extraNumWrapId, extraPostWrapId,
-                     extraNumInputId, extraPostInputId) {
+                     extraNumInputId, extraPostInputId,
+                     addrErrorId, manualFieldsId,
+                     manualNumberInputId, manualPostalInputId, manualDistrictId) {
+
     var input          = document.getElementById(inputId);
     var dropdown       = document.getElementById(dropdownId);
     var manualBtn      = document.getElementById(manualBtnId);
@@ -3787,11 +3922,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     var extraPostWrap  = document.getElementById(extraPostWrapId);
     var extraNumInput  = document.getElementById(extraNumInputId);
     var extraPostInput = document.getElementById(extraPostInputId);
+    var addrErrorEl    = document.getElementById(addrErrorId);
+    var manualFieldsEl = document.getElementById(manualFieldsId);
+    var manualNumberEl = document.getElementById(manualNumberInputId);
+    var manualPostalEl = document.getElementById(manualPostalInputId);
+    var manualDistEl   = document.getElementById(manualDistrictId);
 
     if (!input || !dropdown) return;
 
-    /* Move dropdown to <body> so position:fixed is relative to viewport,
-       not to a transformed/backdrop-filter ancestor (e.g. .popup-card). */
+    /* Move dropdown to <body> — escapes transform/backdrop-filter containment */
     if (dropdown.parentElement !== document.body) {
       document.body.appendChild(dropdown);
     }
@@ -3805,7 +3944,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     var isManual       = false;
     var googleSelected = false;
 
-    /* ── Show/hide extra fields based on what Google returned ──── */
+    /* ── Inline error ──── */
+    function showAddrError(msg) {
+      if (addrErrorEl) { addrErrorEl.textContent = msg; addrErrorEl.style.display = 'block'; }
+    }
+    function hideAddrError() {
+      if (addrErrorEl) { addrErrorEl.textContent = ''; addrErrorEl.style.display = 'none'; }
+    }
+
+    /* ── Post-Google extra fields (number / postal missing from response) ── */
     function showExtras() {
       if (!extrasEl) return;
       var needNum  = !st.number;
@@ -3824,27 +3971,98 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       if (extraPostInput) extraPostInput.value = '';
     }
 
-    /* Wire up extra field inputs — update state without touching source/placeId/lat/lng */
+    /* Wire extra field inputs (post-Google selection) */
     if (extraNumInput) {
       extraNumInput.addEventListener('input', function () {
         st.number = extraNumInput.value.trim();
+        hideAddrError();
       });
     }
     if (extraPostInput) {
       extraPostInput.addEventListener('input', function () {
         st.postalCode = extraPostInput.value.trim();
+        hideAddrError();
+      });
+      extraPostInput.addEventListener('blur', function () {
+        var norm = normalizePostal(extraPostInput.value);
+        if (norm) { extraPostInput.value = norm; st.postalCode = norm; }
       });
     }
 
-    /* ── Manual mode ──── */
+    /* Wire manual mode inputs */
+    if (manualNumberEl) {
+      manualNumberEl.addEventListener('input', function () {
+        st.number = manualNumberEl.value.trim();
+        hideAddrError();
+      });
+    }
+    if (manualPostalEl) {
+      manualPostalEl.addEventListener('input', function () {
+        st.postalCode = manualPostalEl.value.trim();
+        hideAddrError();
+      });
+      manualPostalEl.addEventListener('blur', function () {
+        var norm = normalizePostal(manualPostalEl.value);
+        if (norm) { manualPostalEl.value = norm; st.postalCode = norm; }
+      });
+    }
+    if (manualDistEl) {
+      manualDistEl.addEventListener('change', function () {
+        st.district = manualDistEl.value;
+        hideAddrError();
+      });
+    }
+
+    /* ── Validation — called from submitLead ── */
+    st.validate = function () {
+      if (!googleSelected && !isManual) {
+        return { ok: false, error: 'Selecione uma das moradas sugeridas ou introduza a morada manualmente.' };
+      }
+      if (googleSelected) {
+        if (extraNumWrap && extraNumWrap.style.display !== 'none') {
+          if (!st.number || !st.number.trim()) {
+            return { ok: false, error: 'Introduza o número da porta.' };
+          }
+        }
+        if (extraPostWrap && extraPostWrap.style.display !== 'none') {
+          var np1 = normalizePostal(st.postalCode);
+          if (!np1) {
+            return { ok: false, error: 'Introduza um código postal válido (ex.: 4450-123).' };
+          }
+          st.postalCode = np1;
+          if (extraPostInput) extraPostInput.value = np1;
+        }
+        return { ok: true, error: '' };
+      }
+      /* Manual mode */
+      if (!st.street || !st.street.trim()) return { ok: false, error: 'Introduza a rua ou avenida.' };
+      if (!st.number || !st.number.trim()) return { ok: false, error: 'Introduza o número da porta.' };
+      var np2 = normalizePostal(st.postalCode);
+      if (!np2) return { ok: false, error: 'Introduza um código postal válido (ex.: 4450-123).' };
+      st.postalCode = np2;
+      if (manualPostalEl) manualPostalEl.value = np2;
+      if (!st.district) return { ok: false, error: 'Selecione o distrito.' };
+      return { ok: true, error: '' };
+    };
+
+    /* ── Enter manual mode ── */
     function enterManual() {
-      isManual = true;
-      clearGoogleFields(st);
+      isManual       = true;
       googleSelected = false;
-      input.setAttribute('autocomplete', 'street-address');
+      clearGoogleFields(st);
       closeDropdown();
       hideExtras();
+      hideAddrError();
       if (hintEl) hintEl.style.display = 'none';
+      /* Repurpose main input as the street/rua field */
+      input.setAttribute('placeholder', 'Rua / Avenida / Travessa');
+      input.setAttribute('autocomplete', 'street-address');
+      input.removeAttribute('role');
+      input.setAttribute('aria-autocomplete', 'none');
+      input.setAttribute('aria-expanded', 'false');
+      st.street = input.value.trim();
+      st.source = 'manual';
+      if (manualFieldsEl) manualFieldsEl.style.display = 'flex';
     }
 
     if (manualBtn) {
@@ -3854,7 +4072,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       });
     }
 
-    /* ── Open / close dropdown ──── */
+    /* ── Open / close dropdown ── */
     function openDropdown() {
       dropdown.removeAttribute('hidden');
       reposition(dropdown, input);
@@ -3868,7 +4086,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       activeIdx = -1;
     }
 
-    /* ── Reposition on scroll / resize ──── */
+    /* ── Reposition on scroll / resize ── */
     window.addEventListener('scroll', function (e) {
       if (!dropdown.hasAttribute('hidden') && !dropdown.contains(e.target)) {
         reposition(dropdown, input);
@@ -3878,7 +4096,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       if (!dropdown.hasAttribute('hidden')) reposition(dropdown, input);
     }, { passive: true });
 
-    /* ── Close on outside click / touch ──── */
+    /* ── Close on outside click / touch ── */
     document.addEventListener('mousedown', function (e) {
       if (!dropdown.hasAttribute('hidden') &&
           !dropdown.contains(e.target) && e.target !== input) {
@@ -3892,7 +4110,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
     }, { passive: true });
 
-    /* ── Render suggestions ──── */
+    /* ── Render suggestions ── */
     function render(suggestions) {
       dropdown.innerHTML = '';
       activeIdx = -1;
@@ -3936,11 +4154,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       openDropdown();
     }
 
-    /* ── Select a suggestion ──── */
+    /* ── Select a suggestion ── */
     async function selectSuggestion(pred) {
       closeDropdown();
+      hideAddrError();
 
-      /* Show full text immediately while fetching details */
+      /* Capture pre-typed postal code before overwriting input */
+      var preTypedPostal = extractPostalFromText(input.value);
+
       var fullText = (pred.text && pred.text.text) ||
                      ((pred.mainText      ? pred.mainText.text      : '') +
                       (pred.secondaryText ? ', ' + pred.secondaryText.text : ''));
@@ -3967,6 +4188,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         st.lng          = place.location ? place.location.lng() : null;
         st.placeId      = place.id || '';
 
+        /* Preserve pre-typed postal code if Google didn't return one */
+        if (!st.postalCode && preTypedPostal) {
+          st.postalCode = preTypedPostal;
+        }
+
         input.value = st.formatted;
         st.input    = st.formatted;
         googleSelected = true;
@@ -3984,7 +4210,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
     }
 
-    /* ── Keyboard navigation ──── */
+    /* ── Keyboard navigation ── */
     function setActive(items) {
       items.forEach(function (btn, i) {
         btn.parentElement.setAttribute('aria-selected', i === activeIdx ? 'true' : 'false');
@@ -3995,6 +4221,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
 
     input.addEventListener('keydown', function (e) {
+      if (isManual) return;
       var items = Array.from(dropdown.querySelectorAll('button.address-sugg'));
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -4004,17 +4231,28 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         e.preventDefault();
         activeIdx = Math.max(activeIdx - 1, -1);
         setActive(items);
-      } else if (e.key === 'Enter' && activeIdx >= 0 && items[activeIdx]) {
-        e.preventDefault();
-        items[activeIdx].dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      } else if (e.key === 'Enter') {
+        if (activeIdx >= 0 && items[activeIdx]) {
+          e.preventDefault();
+          items[activeIdx].dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        } else if (!dropdown.hasAttribute('hidden')) {
+          e.preventDefault(); /* dropdown open but nothing selected — block submit */
+        }
+        /* If dropdown is closed: allow submit; address validation will catch it */
       } else if (e.key === 'Escape') {
         closeDropdown();
       }
     });
 
-    /* ── Input event ──── */
+    /* ── Input event ── */
     input.addEventListener('input', function () {
-      /* Clear Google data immediately when user edits after autocomplete selection */
+      hideAddrError();
+
+      if (isManual) {
+        st.street = input.value.trim();
+        return;
+      }
+
       if (googleSelected) {
         clearGoogleFields(st);
         googleSelected = false;
@@ -4022,7 +4260,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
       st.input = input.value;
 
-      if (isManual || !mapsReady) return;
+      if (!mapsReady) return;
 
       clearTimeout(debounce);
       var q = input.value.trim();
@@ -4037,10 +4275,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     /* Delay close on blur so mousedown on a suggestion fires first */
     input.addEventListener('blur', function () {
-      setTimeout(closeDropdown, 180);
+      if (!isManual) setTimeout(closeDropdown, 180);
     });
 
-    /* ── Fetch suggestions ──── */
+    /* ── Fetch suggestions ── */
     async function fetchSuggestions(q) {
       if (!placesLib) return;
       if (!token) token = new placesLib.AutocompleteSessionToken();
@@ -4052,7 +4290,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           includedRegionCodes: ['pt'],
           language:            'pt',
         });
-        if (input.value.trim() !== q) return; /* discard stale response */
+        if (input.value.trim() !== q) return;
         render(result.suggestions || []);
       } catch (e) {
         console.error('[Places] suggestions error:', e.message || e);
@@ -4063,22 +4301,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   /* ── Bootstrap ───────────────────────────────────────────────── */
   async function init() {
-    var apiKey = await fetchApiKey();
-    if (!apiKey) {
-      console.warn('[Places] No API key — autocomplete disabled, manual input active.');
-      return;
-    }
-    var ok = await ensureMaps(apiKey);
-    if (!ok) {
-      console.warn('[Places] Maps failed — autocomplete disabled, manual input active.');
-      return;
-    }
+    /* Always initialise fields — manual mode and validation work even without Maps */
     initField('morada',       'morada-dropdown',       'morada-manual-btn',       'morada-hint',
               'morada-extras',       'morada-extra-number',       'morada-extra-postal',
-              'morada-number-input', 'morada-postal-input');
+              'morada-number-input', 'morada-postal-input',
+              'morada-addr-error',   'morada-manual-fields',
+              'morada-manual-number', 'morada-manual-postal', 'morada-manual-district');
     initField('popup-morada', 'popup-morada-dropdown', 'popup-morada-manual-btn', 'popup-morada-hint',
               'popup-morada-extras', 'popup-morada-extra-number', 'popup-morada-extra-postal',
-              'popup-morada-number-input', 'popup-morada-postal-input');
+              'popup-morada-number-input', 'popup-morada-postal-input',
+              'popup-morada-addr-error', 'popup-morada-manual-fields',
+              'popup-morada-manual-number', 'popup-morada-manual-postal', 'popup-morada-manual-district');
+
+    /* Load Maps for autocomplete (manual mode works regardless) */
+    var apiKey = await fetchApiKey();
+    if (!apiKey) { console.warn('[Places] No API key — autocomplete disabled.'); return; }
+    await ensureMaps(apiKey);
   }
 
   document.readyState === 'loading'
