@@ -872,6 +872,24 @@ export default {
     var morada =
       clean(body.morada, 300);
 
+    /* Address autocomplete breakdown (Places API New) */
+    var addrInput     = clean(body.address_input,        300);
+    var addrFormatted = clean(body.address_formatted,    300);
+    var addrStreet    = clean(body.address_street,       200);
+    var addrNumber    = clean(body.address_number,        50);
+    var addrPostal    = clean(body.address_postal_code,   20);
+    var addrLocality  = clean(body.address_locality,     200);
+    var addrMunic     = clean(body.address_municipality, 200);
+    var addrDistrict  = clean(body.address_district,     200);
+    var addrCountry   = clean(body.address_country,      100);
+    var addrLat       = (body.address_lat != null && isFinite(body.address_lat))
+                          ? Number(body.address_lat) : null;
+    var addrLng       = (body.address_lng != null && isFinite(body.address_lng))
+                          ? Number(body.address_lng) : null;
+    var googlePlaceId = clean(body.google_place_id,      500);
+    var addrSource    = clean(body.address_source,        30);
+    if (addrSource !== 'google_autocomplete') addrSource = 'manual';
+
     var website =
       clean(body.website, 200);
 
@@ -1196,7 +1214,21 @@ export default {
 
       email: email,
 
-      address: morada,
+      address: addrFormatted || morada,
+
+      address_input:        addrInput,
+      address_formatted:    addrFormatted,
+      address_street:       addrStreet,
+      address_number:       addrNumber,
+      address_postal_code:  addrPostal,
+      address_locality:     addrLocality,
+      address_municipality: addrMunic,
+      address_district:     addrDistrict,
+      address_country:      addrCountry,
+      address_lat:          addrLat,
+      address_lng:          addrLng,
+      google_place_id:      googlePlaceId,
+      address_source:       addrSource,
 
       gasto_mensal:
         gastoOption.label,

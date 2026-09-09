@@ -1494,6 +1494,47 @@
       .savings-col { padding: 28px 22px; }
       .savings-highlight { padding: 28px 24px; }
     }
+
+    /* ── ADDRESS AUTOCOMPLETE ──────────────────────────────────────── */
+    .address-autocomplete-rel { position: relative; }
+    .address-dropdown {
+      position: fixed; z-index: 99997;
+      background: #fff; border: 1.5px solid #e0e0e0; border-radius: 8px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+      overflow-y: auto; list-style: none; margin: 0; padding: 4px 0;
+      max-height: 232px; min-width: 220px;
+    }
+    .address-dropdown[hidden] { display: none; }
+    .address-sugg {
+      display: flex; align-items: flex-start; gap: 9px;
+      padding: 10px 13px; cursor: pointer; min-height: 44px;
+      border: none; background: none; width: 100%;
+      text-align: left; font-family: var(--font); color: inherit;
+      transition: background 0.1s;
+    }
+    .address-sugg:hover, .address-sugg:focus,
+    .address-dropdown li[aria-selected="true"] .address-sugg { background: #f6f6f6; outline: none; }
+    .address-sugg-icon { flex-shrink: 0; margin-top: 1px; }
+    .address-sugg-text { display: flex; flex-direction: column; gap: 1px; }
+    .address-sugg-main { font-size: 13px; font-weight: 600; color: #222; line-height: 1.3; }
+    .address-sugg-sec  { font-size: 11.5px; color: #999; line-height: 1.3; }
+    .address-status { font-size: 12px; color: #aaa; padding: 10px 13px; list-style: none; }
+    .address-hint { font-size: 11.5px; color: #bbb; margin-top: 0; line-height: 1.5; }
+    .address-hint-btn {
+      background: none; border: none; padding: 0; cursor: pointer;
+      color: var(--accent); font-size: 11.5px; font-family: var(--font);
+      text-decoration: underline; text-underline-offset: 2px; opacity: 0.85;
+    }
+    .address-hint-btn:hover { opacity: 1; }
+    .address-extras { display: none; flex-direction: row; gap: 6px; margin-top: 2px; }
+    .address-extras.is-visible { display: flex; }
+    .address-extra-field { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .address-extra-label {
+      font-size: 10px; font-weight: 700; color: #aaa;
+      letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--font);
+    }
+    .address-manual-fields { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+    .address-inline-error { font-size: 12px; color: var(--accent); margin-top: 2px; line-height: 1.4; display: none; }
   </style>
 </head>
 <body>
@@ -1613,7 +1654,53 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <div class="hsplit-fields">
-        <input class="form-input-sm" type="text" id="morada" name="morada" placeholder="Morada, localidade ou código postal" required autocomplete="street-address" maxlength="300" />
+        <div class="address-autocomplete-rel">
+          <input class="form-input-sm" type="text" id="morada" name="morada"
+            placeholder="Comece a escrever a sua morada"
+            required autocomplete="off" maxlength="300" inputmode="text"
+            role="combobox" aria-autocomplete="list" aria-haspopup="listbox"
+            aria-expanded="false" aria-controls="morada-dropdown" />
+          <ul class="address-dropdown" id="morada-dropdown" role="listbox"
+            aria-label="Sugestões de morada" hidden></ul>
+        </div>
+        <p class="address-hint" id="morada-hint">Não encontra a sua morada?&nbsp;<button type="button" class="address-hint-btn" id="morada-manual-btn">Introduza-a manualmente</button></p>
+        <div class="address-extras" id="morada-extras">
+          <div class="address-extra-field" id="morada-extra-number" style="display:none">
+            <label class="address-extra-label" for="morada-number-input">Número da porta</label>
+            <input class="form-input-sm" type="text" id="morada-number-input"
+              placeholder="Ex.: 34" autocomplete="off" maxlength="20" inputmode="text" />
+          </div>
+          <div class="address-extra-field" id="morada-extra-postal" style="display:none">
+            <label class="address-extra-label" for="morada-postal-input">Código postal</label>
+            <input class="form-input-sm" type="text" id="morada-postal-input"
+              placeholder="Ex.: 4450-123" autocomplete="off" maxlength="10" inputmode="text" />
+          </div>
+        </div>
+        <p class="address-inline-error" id="morada-addr-error" style="display:none"></p>
+        <div class="address-manual-fields" id="morada-manual-fields" style="display:none">
+          <div style="display:flex;gap:6px">
+            <div style="flex:1">
+              <label class="address-extra-label" for="morada-manual-number">Nº da porta</label>
+              <input class="form-input-sm" type="text" id="morada-manual-number"
+                placeholder="Ex.: 34" autocomplete="off" maxlength="20" inputmode="text" />
+            </div>
+            <div style="flex:1">
+              <label class="address-extra-label" for="morada-manual-postal">Código postal</label>
+              <input class="form-input-sm" type="text" id="morada-manual-postal"
+                placeholder="Ex.: 4450-123" autocomplete="postal-code" maxlength="10" inputmode="text" />
+            </div>
+          </div>
+          <label class="address-extra-label" for="morada-manual-district">Distrito</label>
+          <select class="form-select-sm" id="morada-manual-district">
+            <option value="">Selecionar distrito</option>
+            <option>Aveiro</option><option>Beja</option><option>Braga</option>
+            <option>Bragança</option><option>Castelo Branco</option><option>Coimbra</option>
+            <option>Évora</option><option>Faro</option><option>Guarda</option>
+            <option>Leiria</option><option>Lisboa</option><option>Portalegre</option>
+            <option>Porto</option><option>Santarém</option><option>Setúbal</option>
+            <option>Viana do Castelo</option><option>Vila Real</option><option>Viseu</option>
+          </select>
+        </div>
       </div>
 
       <div class="hsplit-fields">
@@ -2693,7 +2780,53 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </select>
       </div>
 
-      <input class="form-input-sm" type="text" id="popup-morada" name="morada" placeholder="Morada, localidade ou código postal" required autocomplete="street-address" maxlength="300" />
+      <div class="address-autocomplete-rel">
+        <input class="form-input-sm" type="text" id="popup-morada" name="morada"
+          placeholder="Comece a escrever a sua morada"
+          required autocomplete="off" maxlength="300" inputmode="text"
+          role="combobox" aria-autocomplete="list" aria-haspopup="listbox"
+          aria-expanded="false" aria-controls="popup-morada-dropdown" />
+        <ul class="address-dropdown" id="popup-morada-dropdown" role="listbox"
+          aria-label="Sugestões de morada" hidden></ul>
+      </div>
+      <p class="address-hint" id="popup-morada-hint">Não encontra a sua morada?&nbsp;<button type="button" class="address-hint-btn" id="popup-morada-manual-btn">Introduza-a manualmente</button></p>
+      <div class="address-extras" id="popup-morada-extras">
+        <div class="address-extra-field" id="popup-morada-extra-number" style="display:none">
+          <label class="address-extra-label" for="popup-morada-number-input">Número da porta</label>
+          <input class="form-input-sm" type="text" id="popup-morada-number-input"
+            placeholder="Ex.: 34" autocomplete="off" maxlength="20" inputmode="text" />
+        </div>
+        <div class="address-extra-field" id="popup-morada-extra-postal" style="display:none">
+          <label class="address-extra-label" for="popup-morada-postal-input">Código postal</label>
+          <input class="form-input-sm" type="text" id="popup-morada-postal-input"
+            placeholder="Ex.: 4450-123" autocomplete="off" maxlength="10" inputmode="text" />
+        </div>
+      </div>
+      <p class="address-inline-error" id="popup-morada-addr-error" style="display:none"></p>
+      <div class="address-manual-fields" id="popup-morada-manual-fields" style="display:none">
+        <div style="display:flex;gap:6px">
+          <div style="flex:1">
+            <label class="address-extra-label" for="popup-morada-manual-number">Nº da porta</label>
+            <input class="form-input-sm" type="text" id="popup-morada-manual-number"
+              placeholder="Ex.: 34" autocomplete="off" maxlength="20" inputmode="text" />
+          </div>
+          <div style="flex:1">
+            <label class="address-extra-label" for="popup-morada-manual-postal">Código postal</label>
+            <input class="form-input-sm" type="text" id="popup-morada-manual-postal"
+              placeholder="Ex.: 4450-123" autocomplete="postal-code" maxlength="10" inputmode="text" />
+          </div>
+        </div>
+        <label class="address-extra-label" for="popup-morada-manual-district">Distrito</label>
+        <select class="form-select-sm" id="popup-morada-manual-district">
+          <option value="">Selecionar distrito</option>
+          <option>Aveiro</option><option>Beja</option><option>Braga</option>
+          <option>Bragança</option><option>Castelo Branco</option><option>Coimbra</option>
+          <option>Évora</option><option>Faro</option><option>Guarda</option>
+          <option>Leiria</option><option>Lisboa</option><option>Portalegre</option>
+          <option>Porto</option><option>Santarém</option><option>Setúbal</option>
+          <option>Viana do Castelo</option><option>Vila Real</option><option>Viseu</option>
+        </select>
+      </div>
 
       <input class="form-input-sm" type="text" id="popup-nome" name="nome" placeholder="Nome completo" required autocomplete="name" maxlength="150" />
 
@@ -2851,6 +2984,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     var formData = new FormData(form);
     var params = new URLSearchParams(window.location.search);
 
+    /* Address autocomplete state */
+    var moradaEl = form.querySelector('[name="morada"]');
+    var addrSt   = (window.__addrState && moradaEl)
+                     ? (window.__addrState.get(moradaEl.id) || {})
+                     : {};
+    var rawMorada = String(formData.get('morada') || '').trim();
+    var addressFormatted = (typeof window.buildFormattedAddress === 'function')
+      ? (window.buildFormattedAddress(addrSt) || rawMorada)
+      : rawMorada;
+
     var eventId =
       storageGet('meta_pending_event_id') ||
       createEventId();
@@ -2880,8 +3023,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       email:   String(formData.get('email')   || '').trim(),
       gasto:   String(formData.get('gasto')   || '').trim(),
       prazo:   String(formData.get('prazo')   || '').trim(),
-      morada:  String(formData.get('morada')  || '').trim(),
+      morada:  addressFormatted || rawMorada,
       website: String(formData.get('website') || '').trim(),
+
+      /* Address autocomplete breakdown */
+      address_input:        addrSt.input        || rawMorada,
+      address_formatted:    addressFormatted,
+      address_street:       addrSt.street       || '',
+      address_number:       addrSt.number       || '',
+      address_postal_code:  addrSt.postalCode   || '',
+      address_locality:     addrSt.locality     || '',
+      address_municipality: addrSt.municipality || '',
+      address_district:     addrSt.district     || '',
+      address_country:      addrSt.country      || '',
+      address_lat:          addrSt.lat          || null,
+      address_lng:          addrSt.lng          || null,
+      google_place_id:      addrSt.placeId      || '',
+      address_source:       addrSt.source       || 'manual',
 
       event_id: eventId,
       fbp:      fbp,
@@ -2951,6 +3109,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (rgpdCb && !rgpdCb.checked) {
       showError('Para continuar, aceita os Termos e Condições e a Política de Privacidade.');
       return;
+    }
+
+    /* ── Address validation ── */
+    var _addrInputEl = form.querySelector('[name="morada"]');
+    if (_addrInputEl && window.__addrState) {
+      var _addrSt = window.__addrState.get(_addrInputEl.id);
+      if (_addrSt && typeof _addrSt.validate === 'function') {
+        var _addrChk = _addrSt.validate();
+        if (!_addrChk.ok) {
+          var _addrInlineErr = form.querySelector('.address-inline-error');
+          if (_addrInlineErr) { _addrInlineErr.textContent = _addrChk.error; _addrInlineErr.style.display = 'block'; }
+          showError(_addrChk.error);
+          return;
+        }
+      }
     }
 
     if (!form.reportValidity()) {
@@ -3486,6 +3659,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     : init();
 })();
 </script>
+
+<script src="/places-autocomplete.js"></script>
 
 </body>
 </html>
